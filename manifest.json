@@ -1,0 +1,35 @@
+{
+  "name": "Crowd Ink - Jeu de Physique et Dessin",
+  "short_name": "Crowd Ink",
+  "description": "Guidez une foule vers l'objectif en dessinant des structures physiques",
+  "version": "1.0.0",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "start_url": "/",
+  "scope": "/",
+  "theme_color": "#1976d2",
+  "background_color": "#0a0e1a",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMxOTc2ZDIiLz4KPGJ5ZyBkYXRhLWNvbnRlbnQtdHlwZT0iYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtIiBkYXRhLWNoYXJzZXQ9InV0Zi04Ij4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0OCw0OCkiPgogICAgPGNpcmNsZSBjeD0iMjQiIGN5PSI3MiIgcj0iOCIgZmlsbD0iI2ZmZDU0ZiIvPgogICAgPGNpcmNsZSBjeD0iNDgiIGN5PSI2NCIgcj0iOCIgZmlsbD0iI2ZmZDU0ZiIvPgogICAgPGNpcmNsZSBjeD0iNzIiIGN5PSI3NiIgcj0iOCIgZmlsbD0iI2ZmZDU0ZiIvPgogICAgPHBhdGggZD0iTTIwIDQ4IEw4MCA0OCIgc3Ryb2tlPSIjNDJhNWY1IiBzdHJva2Utd2lkdGg9IjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPHJlY3QgeD0iNzIiIHk9IjI0IiB3aWR0aD0iMjQiIGhlaWdodD0iMTYiIHJ4PSI0IiBmaWxsPSIjNGNhZjUwIiBvcGFjaXR5PSIwLjMiLz4KICA8L2c+CjwvYnlnPgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4MCIgaGVpZ2h0PSI3MjAiIHZpZXdCb3g9IjAgMCAxMjgwIDcyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjMGEwZTFhIi8+Cjx0ZXh0IHg9IjY0MCIgeT0iMzYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZTNmMmZkIiBmb250LXNpemU9IjQ4IiBmb250LWZhbWlseT0iQXJpYWwiPkNyb3dkIElua8KgLeKAlCBKZXUgZGUgUGh5c2lxdWU8L3RleHQ+CjwvcGMRnPgo=",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "features": [
+    "physics simulation",
+    "drawing mechanics",
+    "crowd AI",
+    "progressive challenges"
+  ]
+}

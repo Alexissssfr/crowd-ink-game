@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Crowd Ink - Jeu de Physique et Dessin</title>
+    <meta
+      name="description"
+      content="Guidez une foule vers la zone objectif en dessinant des structures physiques"
+    />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+    <link rel="manifest" href="./manifest.json" />
+  </head>
+  <body>
+    <!-- Interface de jeu -->
+    <div id="game-hud" class="hud">
+      <div class="hud-section">
+        <div class="stat-card">
+          <span class="label">Encre</span>
+          <div class="ink-bar">
+            <div id="ink-fill" class="ink-fill"></div>
+          </div>
+          <span id="ink-text" class="value">0/4000</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="label">Sauvés</span>
+          <span id="saved-text" class="value">0/0</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="label">Temps</span>
+          <span id="time-text" class="value">00:00</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="label">Challenge</span>
+          <span id="level-text" class="value">1</span>
+        </div>
+      </div>
+
+      <div class="hud-section">
+        <div class="controls-card">
+          <button id="btn-reset" class="btn-control" title="Recommencer (R)">
+            ↻ Reset
+          </button>
+          <button
+            id="btn-next"
+            class="btn-control"
+            title="Challenge suivant (N)"
+          >
+            → Suivant
+          </button>
+          <button
+            id="btn-validate"
+            class="btn-action"
+            title="Valider le score (Double-clic)"
+          >
+            ✓ Valider
+          </button>
+        </div>
+
+        <div class="speed-card">
+          <span class="label">Vitesse</span>
+          <input
+            id="speed-slider"
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.25"
+            value="1"
+          />
+          <span id="speed-text" class="value">1.0x</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas de jeu -->
+    <div id="game-container">
+      <canvas id="game-canvas"></canvas>
+      <div id="game-status" class="game-status hidden">
+        <div class="status-panel">
+          <h2 id="status-title">—</h2>
+          <p id="status-message">—</p>
+          <div id="status-score">Score: 0 • ☆☆☆</div>
+          <div class="status-actions">
+            <button id="status-restart" class="btn-primary">Recommencer</button>
+            <button id="status-next" class="btn-primary">
+              Challenge suivant
+            </button>
+            <button id="status-select" class="btn-secondary">
+              Choisir challenge
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panneau de démarrage -->
+    <div id="start-panel" class="modal-overlay">
+      <div class="modal-panel">
+        <h2>Préparer le Challenge</h2>
+        <p>Réglez vos préférences et lancez le défi</p>
+
+        <div class="setting-group">
+          <label class="setting-label">Temps de préparation</label>
+          <div class="speed-control">
+            <input
+              id="prep-time"
+              type="range"
+              min="1"
+              max="3"
+              step="0.5"
+              value="2"
+            />
+            <span id="prep-time-text">2.0s</span>
+          </div>
+          <p class="setting-description">
+            Temps accordé pour tracer avant que les personnages bougent
+          </p>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">Vitesse de jeu</label>
+          <div class="speed-control">
+            <input
+              id="start-speed"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.25"
+              value="1"
+            />
+            <span id="start-speed-text">1.0x</span>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label class="checkbox-label">
+            <input id="auto-jump" type="checkbox" />
+            <span>Auto-saut intelligent</span>
+          </label>
+        </div>
+
+        <div class="setting-group">
+          <label class="checkbox-label">
+            <input id="lock-speed" type="checkbox" />
+            <span>Verrouiller la vitesse pendant le jeu</span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button id="start-game" class="btn-large">
+            Commencer le Challenge
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sélecteur de challenges -->
+    <div id="challenge-selector" class="modal-overlay hidden">
+      <div class="modal-panel">
+        <h2>Choisir un Challenge</h2>
+        <div id="challenge-list" class="challenge-grid"></div>
+        <div class="modal-actions">
+          <button id="close-selector" class="btn-secondary">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div id="instructions" class="instructions">
+      <p>
+        <strong>Clic gauche:</strong> Dessiner •
+        <strong>Clic droit:</strong> Effacer •
+        <strong>Double-clic:</strong> Valider le score
+      </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+    <script type="module" src="./src/core/Game.js"></script>
+  </body>
+</html>

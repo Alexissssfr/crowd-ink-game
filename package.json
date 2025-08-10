@@ -1,0 +1,13 @@
+{
+  "name": "crowd-ink-physics",
+  "version": "1.0.0",
+  "description": "Jeu de physique avec foule et dessin libre",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 5173",
+    "serve": "python3 -m http.server 8080"
+  },
+  "keywords": ["physics", "drawing", "crowd", "game"],
+  "author": "Projet Novateur",
+  "license": "MIT"
+}

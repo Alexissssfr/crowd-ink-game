@@ -1,0 +1,36 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: #0f1220; color: #e8eaf6; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+#container { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 84px; }
+#game { width: 100%; height: 100%; max-width: 1200px; max-height: 700px; border-radius: 12px; background: #0b0e1a; box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06); }
+
+#hud { position: fixed; top: 0; left: 0; right: 0; backdrop-filter: blur(8px); background: linear-gradient(180deg, rgba(10,12,20,0.8), rgba(10,12,20,0)); padding: 12px 16px; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.hud-row { display: grid; grid-template-columns: repeat(5, max-content); gap: 12px; align-items: center; }
+.hud-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; min-width: 160px; }
+.hud-card.controls { grid-column: span 2; display: flex; align-items: center; gap: 10px; min-width: 380px; }
+.hud-label { font-size: 12px; opacity: 0.8; letter-spacing: 0.06em; }
+.hud-value { font-size: 16px; font-weight: 600; }
+
+.bar { position: relative; width: 160px; height: 10px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
+.fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #66e, #4dd0e1); border-right: 1px solid rgba(0,0,0,0.2); }
+
+button { background: #29304b; color: #e8eaf6; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,0.2) inset; }
+button:hover { background: #323a59; }
+button:active { transform: translateY(1px); }
+
+.hint { opacity: 0.7; font-size: 12px; }
+
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: auto; z-index: 20; }
+.overlay .panel { pointer-events: auto; }
+.panel { background: rgba(10,12,20,0.9); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+.title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.subtitle { font-size: 14px; opacity: 0.85; }
+
+canvas { image-rendering: pixelated; }
+
+@media (max-width: 900px) {
+  .hud-row { grid-template-columns: 1fr; }
+  .hud-card.controls { min-width: unset; grid-column: auto; flex-wrap: wrap; }
+}
+
+

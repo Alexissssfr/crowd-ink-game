@@ -463,95 +463,38 @@ export class Character {
     return "flat"; // Terrain plat
   }
 
-  // SOLUTION ULTRA SIMPLE : Forcer le suivi de ligne
+  // SYSTÈME BASIQUE : Marcher sur les lignes par le haut
   handleSlopeMovement() {
-    // SOLUTION DIRECTE : Repositionner sur la ligne
+    // SYSTÈME SIMPLE : Rester sur la ligne
     if (this.isGrounded) {
-      this.forceOnLine();
+      this.stayOnLine();
     }
   }
 
-  // SOLUTION ULTRA SIMPLE : Forcer sur la ligne
-  forceOnLine() {
+  // SYSTÈME BASIQUE : Rester sur la ligne
+  stayOnLine() {
     const position = this.body.position;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
     // Chercher la ligne directement sous le personnage
     const hit = this.physics.raycast(
       { x: position.x, y: position.y },
-      { x: position.x, y: position.y + 30 },
+      { x: position.x, y: position.y + 20 },
       (body) =>
         body !== this.body && body.label === "drawn-trail" && body.isStatic
     );
 
     if (hit) {
-      // REPOSITIONNER DIRECTEMENT sur la ligne
+      // Rester sur la ligne
       Body.setPosition(this.body, {
         x: position.x,
         y: hit.point.y - bodyRadius - 1,
       });
 
-      // FORCER la vitesse horizontale
+      // Vitesse normale
       Body.setVelocity(this.body, {
-        x: this.direction * 1.5,
+        x: this.direction * 1.0,
         y: 0,
-      });
-    } else {
-      // SI PAS DE LIGNE SOUS LE PERSONNAGE, CHERCHER PLUS LARGEMENT
-      this.findAndStickToLine();
-    }
-  }
-
-  // NOUVELLE FONCTION : Chercher et coller à une ligne
-  findAndStickToLine() {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-
-    // Chercher une ligne dans un rayon plus large
-    const searchRadius = bodyRadius * 3;
-
-    // Chercher en dessous et autour
-    const searchPoints = [
-      { x: position.x, y: position.y + 20 }, // Directement en dessous
-      { x: position.x - searchRadius, y: position.y + 10 }, // Gauche
-      { x: position.x + searchRadius, y: position.y + 10 }, // Droite
-      { x: position.x - searchRadius / 2, y: position.y + 15 }, // Gauche proche
-      { x: position.x + searchRadius / 2, y: position.y + 15 }, // Droite proche
-    ];
-
-    for (const searchPoint of searchPoints) {
-      const hit = this.physics.raycast(
-        { x: position.x, y: position.y },
-        searchPoint,
-        (body) =>
-          body !== this.body && body.label === "drawn-trail" && body.isStatic
-      );
-
-      if (hit) {
-        console.log(`Personnage ${this.id} - COLLAGE à ligne trouvée`);
-
-        // COLLER le personnage à cette ligne
-        Body.setPosition(this.body, {
-          x: hit.point.x,
-          y: hit.point.y - bodyRadius - 1,
-        });
-
-        // Arrêter la chute
-        Body.setVelocity(this.body, {
-          x: this.direction * 1.0,
-          y: 0,
-        });
-
-        return; // Sortir dès qu'on trouve une ligne
-      }
-    }
-
-    // Si aucune ligne trouvée, appliquer une gravité réduite
-    const velocity = this.body.velocity;
-    if (velocity.y > 2) {
-      Body.setVelocity(this.body, {
-        x: velocity.x,
-        y: velocity.y * 0.8, // Ralentir la chute
       });
     }
   }
@@ -562,20 +505,16 @@ export class Character {
     const velocity = this.body.velocity;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
-    // Vérifier dans TOUTES les directions
+    // Vérifier les 4 directions principales
     const directions = [
       { x: 1, y: 0 }, // Droite
       { x: -1, y: 0 }, // Gauche
       { x: 0, y: 1 }, // Bas
       { x: 0, y: -1 }, // Haut
-      { x: 1, y: 1 }, // Bas-droite
-      { x: -1, y: 1 }, // Bas-gauche
-      { x: 1, y: -1 }, // Haut-droite
-      { x: -1, y: -1 }, // Haut-gauche
     ];
 
     for (const dir of directions) {
-      const checkDistance = bodyRadius * 2;
+      const checkDistance = bodyRadius * 1.5;
       const checkPoint = {
         x: position.x + dir.x * checkDistance,
         y: position.y + dir.y * checkDistance,
@@ -589,10 +528,6 @@ export class Character {
       );
 
       if (hit) {
-        console.log(
-          `Personnage ${this.id} - TRAVERSÉE BLOQUÉE dans direction ${dir.x},${dir.y}`
-        );
-
         // BLOQUER le mouvement dans cette direction
         if (dir.x !== 0 && Math.sign(velocity.x) === dir.x) {
           Body.setVelocity(this.body, {
@@ -605,22 +540,6 @@ export class Character {
           Body.setVelocity(this.body, {
             x: velocity.x,
             y: 0, // Arrêter le mouvement vertical
-          });
-        }
-
-        // Repositionner légèrement pour éviter la traversée
-        const distanceToLine = Math.sqrt(
-          Math.pow(position.x - hit.point.x, 2) +
-            Math.pow(position.y - hit.point.y, 2)
-        );
-
-        if (distanceToLine < bodyRadius) {
-          const directionX = (position.x - hit.point.x) / distanceToLine;
-          const directionY = (position.y - hit.point.y) / distanceToLine;
-
-          Body.setPosition(this.body, {
-            x: hit.point.x + directionX * (bodyRadius + 1),
-            y: hit.point.y + directionY * (bodyRadius + 1),
           });
         }
       }

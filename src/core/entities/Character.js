@@ -228,7 +228,7 @@ export class Character {
     const distance = Math.sqrt(
       Math.pow(myPos.x - otherPos.x, 2) + Math.pow(myPos.y - otherPos.y, 2)
     );
-    
+
     // Distance minimale adaptée selon l'appareil
     const minDistance = this.isMobile ? this.radius * 1.8 : this.radius * 2.2;
 
@@ -252,7 +252,9 @@ export class Character {
       const forceMultiplier = Math.min(1.0, 1.0 / timeScale);
 
       // SUR MOBILE : Forces réduites pour éviter les comportements erratiques
-      const finalMultiplier = this.isMobile ? forceMultiplier * 0.5 : forceMultiplier;
+      const finalMultiplier = this.isMobile
+        ? forceMultiplier * 0.5
+        : forceMultiplier;
 
       // Appliquer la force de séparation
       Body.applyForce(this.body, this.body.position, {
@@ -590,8 +592,12 @@ export class Character {
           });
         }
 
-        // FORCER le changement de direction si bloqué
-        if (Math.abs(velocity.x) < 0.1 && Math.abs(velocity.y) < 0.1) {
+        // FORCER le changement de direction si bloqué (SEULEMENT sur desktop)
+        if (
+          !this.isMobile &&
+          Math.abs(velocity.x) < 0.1 &&
+          Math.abs(velocity.y) < 0.1
+        ) {
           this.targetDirection *= -1; // Inverser la direction
         }
       }
@@ -654,10 +660,8 @@ export class Character {
           });
         }
 
-        // Changement de direction PLUS RAPIDE sur mobile
-        if (Math.abs(velocity.x) < 0.2) {
-          this.targetDirection *= -1;
-        }
+        // SUR MOBILE : AUCUN changement de direction forcé
+        // Les personnages gardent leur direction initiale
       }
     }
   }
@@ -810,6 +814,12 @@ export class Character {
   }
 
   updateTargetDirection() {
+    // SUR MOBILE : AUCUN changement automatique de direction
+    // Les personnages gardent leur direction initiale
+    if (this.isMobile) {
+      return;
+    }
+
     // LOGIQUE ULTRA-SIMPLE : changement de direction SEULEMENT en cas de blocage réel
 
     // Délai obligatoire entre changements

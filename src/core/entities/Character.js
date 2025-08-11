@@ -450,10 +450,12 @@ export class Character {
         );
       }
 
-      // Détecter le type de pente (seuils plus sensibles)
-      if (heightDiff < -1) {
+      // Détecter le type de pente (seuils TRÈS sensibles)
+      if (heightDiff < -0.5) {
+        // Seuil plus bas pour détecter plus tôt
         return "downhill"; // Pente descendante
-      } else if (heightDiff > 1) {
+      } else if (heightDiff > 0.5) {
+        // Seuil plus bas pour détecter plus tôt
         return "uphill"; // Pente montante
       }
     }
@@ -468,25 +470,28 @@ export class Character {
     const position = this.body.position;
 
     if (slopeType === "downhill") {
-      console.log(`Personnage ${this.id} - Gestion pente descendante`);
+      console.log(`Personnage ${this.id} - FORÇAGE DESCENTE RADICAL`);
 
-      // Pente descendante - FORCER la descente sur la surface
+      // Pente descendante - FORÇAGE RADICAL
       if (this.isGrounded) {
-        // Appliquer une force pour descendre
+        // SOLUTION RADICALE : Forcer le mouvement de descente
+        this.forceDownhillMovement();
+
+        // Appliquer une force TRÈS FORTE pour descendre
         Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.005, // Force horizontale plus forte
-          y: 0.003, // Force vers le bas
+          x: this.direction * 0.008, // Force horizontale TRÈS forte
+          y: 0.012, // Force vers le bas TRÈS forte
         });
 
-        // Si le personnage est bloqué, l'aider à descendre
-        if (Math.abs(velocity.x) < 0.3) {
+        // Si le personnage est bloqué, le forcer à descendre
+        if (Math.abs(velocity.x) < 0.5) {
           Body.setVelocity(this.body, {
-            x: this.direction * 1.0, // Vitesse minimale pour descendre
-            y: velocity.y,
+            x: this.direction * 2.0, // Vitesse forcée pour descendre
+            y: 1.5, // Vitesse de descente forcée
           });
         }
 
-        // FORCER le personnage à rester sur la surface et suivre la ligne
+        // Forcer la descente et suivre la ligne
         this.forceStayOnSurface();
         this.forceFollowLine();
       }
@@ -620,6 +625,59 @@ export class Character {
             y: lineY - bodyRadius - 1, // Juste au-dessus de la ligne
           });
         }
+      }
+    }
+  }
+
+  // SOLUTION RADICALE : Forcer le personnage à suivre la pente descendante
+  forceDownhillMovement() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+    const velocity = this.body.velocity;
+
+    // Chercher la pente descendante devant le personnage
+    const searchDistance = bodyRadius * 4;
+    const searchStart = {
+      x: position.x + this.direction * searchDistance,
+      y: position.y - bodyRadius * 3,
+    };
+    const searchEnd = {
+      x: position.x + this.direction * searchDistance,
+      y: position.y + bodyRadius * 3,
+    };
+
+    const downhillHit = this.physics.raycast(
+      searchStart,
+      searchEnd,
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (downhillHit) {
+      const downhillY = downhillHit.point.y;
+      const currentY = position.y;
+
+      // Si la pente descend (ligne plus basse devant)
+      if (downhillY > currentY + 2) {
+        console.log(`Personnage ${this.id} - FORÇAGE DESCENTE RADICAL`);
+
+        // FORCER la descente avec repositionnement immédiat
+        Body.setPosition(this.body, {
+          x: position.x + this.direction * 2, // Avancer légèrement
+          y: downhillY - bodyRadius - 1, // Coller à la pente
+        });
+
+        // FORCER la vitesse de descente
+        Body.setVelocity(this.body, {
+          x: this.direction * 2.0, // Vitesse horizontale forcée
+          y: 1.0, // Vitesse de descente forcée
+        });
+
+        // Appliquer une force TRÈS forte vers le bas
+        Body.applyForce(this.body, this.body.position, {
+          x: this.direction * 0.015, // Force horizontale TRÈS forte
+          y: 0.02, // Force vers le bas TRÈS forte
+        });
       }
     }
   }

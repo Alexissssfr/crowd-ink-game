@@ -93,11 +93,8 @@ export class Character {
     this.handleMovement(deltaTime);
     this.checkStuckState();
 
-    // Gestion des pentes pour navigation naturelle
+    // NOUVEAU SYSTÈME : Rails magnétiques
     this.handleSlopeMovement();
-
-    // SOLUTION ULTIME : Forcer le suivi strict des lignes
-    this.forceStrictLineFollowing();
 
     this.checkBounds();
 
@@ -463,26 +460,89 @@ export class Character {
     return "flat"; // Terrain plat
   }
 
-  // SOLUTION EXTRÊME : Gestion SIMPLE des pentes
+  // NOUVEAU SYSTÈME : Rails magnétiques invisibles
   handleSlopeMovement() {
-    // SOLUTION EXTRÊME : Forcer le suivi de ligne dans TOUS les cas
-    
+    // SYSTÈME SIMPLE : Les personnages suivent automatiquement les rails
     if (this.isGrounded) {
-      // FORCER le suivi de ligne dans la direction du mouvement
-      this.forceLineFollowingInDirection();
-      
-      // FORCER le repositionnement sur la ligne
-      this.forceStrictLineFollowing();
-      
-      // FORCER la vitesse dans la direction
+      this.followMagneticRail();
+    }
+  }
+
+  // NOUVEAU SYSTÈME : Rails magnétiques
+  followMagneticRail() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Chercher le rail le plus proche
+    const railPoint = this.findNearestRailPoint(position);
+
+    if (railPoint) {
+      // Calculer la distance au rail
+      const distanceToRail = Math.sqrt(
+        Math.pow(position.x - railPoint.x, 2) +
+          Math.pow(position.y - railPoint.y, 2)
+      );
+
+      // Si on est trop loin du rail, se rapprocher
+      if (distanceToRail > bodyRadius + 2) {
+        // Calculer la direction vers le rail
+        const directionX = (railPoint.x - position.x) / distanceToRail;
+        const directionY = (railPoint.y - position.y) / distanceToRail;
+
+        // Appliquer une force magnétique vers le rail
+        Body.applyForce(this.body, this.body.position, {
+          x: directionX * 0.005, // Force magnétique horizontale
+          y: directionY * 0.005, // Force magnétique verticale
+        });
+
+        // Si vraiment loin, repositionner
+        if (distanceToRail > bodyRadius + 5) {
+          Body.setPosition(this.body, {
+            x: railPoint.x,
+            y: railPoint.y - bodyRadius - 1,
+          });
+        }
+      }
+
+      // Forcer la vitesse dans la direction du rail
       const velocity = this.body.velocity;
-      if (Math.abs(velocity.x) < 0.8) {
+      if (Math.abs(velocity.x) < 1.0) {
         Body.setVelocity(this.body, {
-          x: this.direction * 1.5, // Vitesse forcée
-          y: 0, // Pas de mouvement vertical
+          x: this.direction * 1.2,
+          y: 0,
         });
       }
     }
+  }
+
+  // NOUVEAU SYSTÈME : Trouver le point de rail le plus proche
+  findNearestRailPoint(position) {
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+    const searchRadius = bodyRadius * 4;
+
+    // Chercher dans un rayon autour du personnage
+    const searchStart = {
+      x: position.x - searchRadius,
+      y: position.y - searchRadius,
+    };
+    const searchEnd = {
+      x: position.x + searchRadius,
+      y: position.y + searchRadius,
+    };
+
+    // Raycast multiple pour trouver le rail le plus proche
+    const railHit = this.physics.raycast(
+      searchStart,
+      searchEnd,
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (railHit) {
+      return railHit.point;
+    }
+
+    return null;
   }
 
   // NOUVELLE FONCTION : Forcer le personnage à rester sur la surface
@@ -678,11 +738,11 @@ export class Character {
     const searchDistance = bodyRadius * 2;
     const searchStart = {
       x: position.x + this.direction * searchDistance,
-      y: position.y - bodyRadius
+      y: position.y - bodyRadius,
     };
     const searchEnd = {
       x: position.x + this.direction * searchDistance,
-      y: position.y + bodyRadius
+      y: position.y + bodyRadius,
     };
 
     const lineHit = this.physics.raycast(
@@ -700,10 +760,10 @@ export class Character {
       // Si on est trop loin de la ligne, forcer le rapprochement
       if (distanceToLine > bodyRadius) {
         console.log(`Personnage ${this.id} - FORÇAGE RAPPROCHEMENT vers ligne`);
-        
+
         // Calculer la direction vers la ligne
         const directionToLine = lineY > currentY ? 1 : -1;
-        
+
         // FORCER le rapprochement avec repositionnement
         Body.setPosition(this.body, {
           x: position.x + this.direction * 1, // Avancer légèrement
@@ -963,19 +1023,12 @@ export class Character {
     const forceMultiplier = Math.max(0.1, 1.0 / Math.sqrt(timeScale)); // Réduction progressive
     const speedMultiplier = Math.max(0.3, 1.0 / timeScale); // Limite la vitesse max
 
-    // SUPPRIMÉ : Toutes les limitations qui empêchent le suivi des lignes
-    // Les personnages DOIVENT suivre strictement les lignes dessinées
-
-    // Force de base TRÈS FAIBLE pour ne pas contrarier le suivi de ligne
+    // NOUVEAU SYSTÈME : Mouvement simple guidé par les rails
     const adaptedMaxSpeed = this.maxSpeed;
     if (Math.abs(currentVelocity.x) < adaptedMaxSpeed) {
-      const force = this.moveForce * this.direction * 0.3; // Force TRÈS réduite
+      const force = this.moveForce * this.direction * 0.5; // Force modérée
       Body.applyForce(this.body, this.body.position, { x: force, y: 0 });
     }
-
-    // SUPPRIMÉ : Toutes les limitations de vitesse qui empêchent le suivi
-    // SUPPRIMÉ : Tous les amortissements qui ralentissent le mouvement
-    // SUPPRIMÉ : preventTrailPenetration qui interfère avec le suivi
 
     // checkGroundAhead() DÉSACTIVÉ - causait des changements de direction inappropriés
 

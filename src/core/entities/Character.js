@@ -93,8 +93,8 @@ export class Character {
     this.handleMovement(deltaTime);
     this.checkStuckState();
 
-    // SOLUTION ULTRA SIMPLE : Forcer le suivi de ligne
-    this.handleSlopeMovement();
+    // SUPPRIMÉ : Toutes les fonctions d'attraction
+    // Les personnages ne sont plus attirés par quoi que ce soit
 
     // EMPÊCHER TOUTE TRAVERSÉE DE LIGNES
     this.preventLineTraversal();
@@ -586,199 +586,13 @@ export class Character {
     }
   }
 
-  // NOUVELLE FONCTION : Forcer le personnage à suivre la ligne
-  forceFollowLine() {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+  // SUPPRIMÉ : forceFollowLine - Fonction d'attraction supprimée
 
-    // Chercher la ligne la plus proche dans la direction du mouvement
-    const searchDistance = bodyRadius * 3;
-    const searchStart = {
-      x: position.x + this.direction * searchDistance,
-      y: position.y - bodyRadius * 2,
-    };
-    const searchEnd = {
-      x: position.x + this.direction * searchDistance,
-      y: position.y + bodyRadius * 2,
-    };
+  // SUPPRIMÉ : forceDownhillMovement - Fonction d'attraction supprimée
 
-    const lineHit = this.physics.raycast(
-      searchStart,
-      searchEnd,
-      (body) =>
-        body !== this.body && body.label === "drawn-trail" && body.isStatic
-    );
+  // SUPPRIMÉ : forceStrictLineFollowing - Fonction d'attraction supprimée
 
-    if (lineHit) {
-      const lineY = lineHit.point.y;
-      const currentY = position.y;
-      const distanceToLine = Math.abs(lineY - currentY);
-
-      // Si on est trop loin de la ligne, forcer le rapprochement
-      if (distanceToLine > bodyRadius + 1) {
-        console.log(`Personnage ${this.id} - Forcer rapprochement vers ligne`);
-
-        // Calculer la direction vers la ligne
-        const directionToLine = lineY > currentY ? 1 : -1;
-
-        // Appliquer une force vers la ligne
-        Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.002, // Force horizontale
-          y: directionToLine * 0.003, // Force vers la ligne
-        });
-
-        // Si on est vraiment loin, repositionner
-        if (distanceToLine > bodyRadius + 3) {
-          Body.setPosition(this.body, {
-            x: position.x,
-            y: lineY - bodyRadius - 1, // Juste au-dessus de la ligne
-          });
-        }
-      }
-    }
-  }
-
-  // SOLUTION RADICALE : Forcer le personnage à suivre la pente descendante
-  forceDownhillMovement() {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-    const velocity = this.body.velocity;
-
-    // Chercher la pente descendante devant le personnage
-    const searchDistance = bodyRadius * 4;
-    const searchStart = {
-      x: position.x + this.direction * searchDistance,
-      y: position.y - bodyRadius * 3,
-    };
-    const searchEnd = {
-      x: position.x + this.direction * searchDistance,
-      y: position.y + bodyRadius * 3,
-    };
-
-    const downhillHit = this.physics.raycast(
-      searchStart,
-      searchEnd,
-      (body) =>
-        body !== this.body && body.label === "drawn-trail" && body.isStatic
-    );
-
-    if (downhillHit) {
-      const downhillY = downhillHit.point.y;
-      const currentY = position.y;
-
-      // Si la pente descend (ligne plus basse devant)
-      if (downhillY > currentY + 2) {
-        console.log(`Personnage ${this.id} - FORÇAGE DESCENTE RADICAL`);
-
-        // FORCER la descente avec repositionnement immédiat
-        Body.setPosition(this.body, {
-          x: position.x + this.direction * 2, // Avancer légèrement
-          y: downhillY - bodyRadius - 1, // Coller à la pente
-        });
-
-        // FORCER la vitesse de descente
-        Body.setVelocity(this.body, {
-          x: this.direction * 2.0, // Vitesse horizontale forcée
-          y: 1.0, // Vitesse de descente forcée
-        });
-
-        // Appliquer une force TRÈS forte vers le bas
-        Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.015, // Force horizontale TRÈS forte
-          y: 0.02, // Force vers le bas TRÈS forte
-        });
-      }
-    }
-  }
-
-  // SOLUTION EXTRÊME : Forcer le personnage à suivre EXACTEMENT la ligne
-  forceStrictLineFollowing() {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-
-    // Chercher la ligne EXACTEMENT sous le personnage
-    const lineHit = this.physics.raycast(
-      { x: position.x, y: position.y },
-      { x: position.x, y: position.y + 20 },
-      (body) =>
-        body !== this.body && body.label === "drawn-trail" && body.isStatic
-    );
-
-    if (lineHit) {
-      const lineY = lineHit.point.y;
-      const currentY = position.y;
-      const distanceToLine = Math.abs(lineY - currentY);
-
-      // Si on n'est pas EXACTEMENT sur la ligne, repositionner
-      if (distanceToLine > 1) {
-        console.log(
-          `Personnage ${this.id} - REPOSITIONNEMENT STRICT sur ligne`
-        );
-
-        // Repositionner EXACTEMENT sur la ligne
-        Body.setPosition(this.body, {
-          x: position.x,
-          y: lineY - bodyRadius - 0.5, // EXACTEMENT sur la ligne
-        });
-
-        // Arrêter TOUT mouvement vertical
-        Body.setVelocity(this.body, {
-          x: this.body.velocity.x,
-          y: 0, // Pas de mouvement vertical
-        });
-      }
-    }
-  }
-
-  // SOLUTION EXTRÊME : Forcer le personnage à suivre la ligne dans la direction du mouvement
-  forceLineFollowingInDirection() {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-
-    // Chercher la ligne dans la direction du mouvement
-    const searchDistance = bodyRadius * 2;
-    const searchStart = {
-      x: position.x + this.direction * searchDistance,
-      y: position.y - bodyRadius,
-    };
-    const searchEnd = {
-      x: position.x + this.direction * searchDistance,
-      y: position.y + bodyRadius,
-    };
-
-    const lineHit = this.physics.raycast(
-      searchStart,
-      searchEnd,
-      (body) =>
-        body !== this.body && body.label === "drawn-trail" && body.isStatic
-    );
-
-    if (lineHit) {
-      const lineY = lineHit.point.y;
-      const currentY = position.y;
-      const distanceToLine = Math.abs(lineY - currentY);
-
-      // Si on est trop loin de la ligne, forcer le rapprochement
-      if (distanceToLine > bodyRadius) {
-        console.log(`Personnage ${this.id} - FORÇAGE RAPPROCHEMENT vers ligne`);
-
-        // Calculer la direction vers la ligne
-        const directionToLine = lineY > currentY ? 1 : -1;
-
-        // FORCER le rapprochement avec repositionnement
-        Body.setPosition(this.body, {
-          x: position.x + this.direction * 1, // Avancer légèrement
-          y: lineY - bodyRadius - 0.5, // EXACTEMENT sur la ligne
-        });
-
-        // FORCER la vitesse dans la direction
-        Body.setVelocity(this.body, {
-          x: this.direction * 1.5, // Vitesse forcée
-          y: 0, // Pas de mouvement vertical
-        });
-      }
-    }
-  }
+  // SUPPRIMÉ : forceLineFollowingInDirection - Fonction d'attraction supprimée
 
   preventTrailPenetrationHighSpeed() {
     const position = this.body.position;

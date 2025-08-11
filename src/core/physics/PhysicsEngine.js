@@ -104,7 +104,7 @@ export class PhysicsEngine {
     // GARDER LA FORME EXACTE - pas de simplification
     if (points.length < 2) return null;
 
-    // Création de segments AVEC CHEVAUCHEMENT pour éviter les gaps
+    // Création de segments ULTRA DENSES avec CHEVAUCHEMENT MAXIMAL
     const trailBodies = [];
 
     for (let i = 0; i < points.length - 1; i++) {
@@ -121,8 +121,8 @@ export class PhysicsEngine {
       const centerX = (p1.x + p2.x) / 2;
       const centerY = (p1.y + p2.y) / 2;
 
-      // SEGMENTS AVEC CHEVAUCHEMENT POUR SOLIDITÉ ABSOLUE
-      const overlapFactor = isMobile ? 0.5 : 0.3; // Plus de chevauchement sur mobile
+      // SEGMENTS ULTRA DENSES avec CHEVAUCHEMENT MAXIMAL
+      const overlapFactor = isMobile ? 0.8 : 0.6; // CHEVAUCHEMENT MAXIMAL
       const extendedLength = length + thickness * overlapFactor;
 
       const segment = Bodies.rectangle(
@@ -135,7 +135,7 @@ export class PhysicsEngine {
           friction,
           frictionStatic,
           restitution,
-          density: density * 2, // ENCORE PLUS DENSE
+          density: density * 3, // ULTRA DENSE
           angle,
           label: "drawn-trail",
           render: {
@@ -150,18 +150,90 @@ export class PhysicsEngine {
       trailBodies.push(segment);
     }
 
-    // AJOUTER DES SEGMENTS DE RENFORCEMENT AUX JONCTIONS
+    // AJOUTER DES SEGMENTS INTERMÉDIAIRES pour combler les gaps
+    for (let i = 0; i < points.length - 2; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2];
+
+      // Point intermédiaire entre p1 et p3
+      const midX = (p1.x + p3.x) / 2;
+      const midY = (p1.y + p3.y) / 2;
+
+      // Segment intermédiaire pour combler les gaps
+      const dx = p3.x - p1.x;
+      const dy = p3.y - p1.y;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+
+      if (length > 5) { // Seulement si assez long
+        const intermediateSegment = Bodies.rectangle(
+          midX,
+          midY,
+          length * 0.8, // Légèrement plus court
+          thickness * 0.8, // Légèrement plus fin
+          {
+            isStatic: true,
+            friction: friction * 1.5,
+            frictionStatic: frictionStatic * 1.5,
+            restitution,
+            density: density * 2,
+            angle,
+            label: "drawn-trail",
+            render: {
+              fillStyle: "#2196f3", // Couleur différente pour les segments intermédiaires
+              strokeStyle: "#1976d2",
+              lineWidth: 1,
+            },
+          }
+        );
+
+        World.add(this.world, intermediateSegment);
+        trailBodies.push(intermediateSegment);
+      }
+    }
+
+    // AJOUTER DES SEGMENTS DE RENFORCEMENT ULTRA GROS AUX JONCTIONS
     for (let i = 1; i < points.length - 1; i++) {
       const point = points[i];
 
-      // Cercle de renforcement PLUS GROS à chaque jonction
-      const reinforcementSize = isMobile ? thickness * 0.9 : thickness * 0.7;
+      // Cercle de renforcement ULTRA GROS à chaque jonction
+      const reinforcementSize = isMobile ? thickness * 1.5 : thickness * 1.2; // BEAUCOUP PLUS GROS
       const reinforcement = Bodies.circle(point.x, point.y, reinforcementSize, {
         isStatic: true,
-        friction: isMobile ? 2.0 : friction,
-        frictionStatic: isMobile ? 4.0 : frictionStatic,
+        friction: isMobile ? 3.0 : friction * 2,
+        frictionStatic: isMobile ? 6.0 : frictionStatic * 2,
         restitution,
-        density: isMobile ? density * 5 : density * 3, // ENCORE PLUS DENSE sur mobile
+        density: isMobile ? density * 8 : density * 5, // ULTRA DENSE
+        label: "drawn-trail",
+        render: {
+          fillStyle: "#1976d2", // Couleur plus foncée pour les renforcements
+          strokeStyle: "#0d47a1",
+          lineWidth: 2,
+        },
+      });
+
+      World.add(this.world, reinforcement);
+      trailBodies.push(reinforcement);
+    }
+
+    // AJOUTER DES RENFORCEMENTS SUPPLÉMENTAIRES ENTRE LES POINTS
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      
+      // Point milieu entre p1 et p2
+      const midX = (p1.x + p2.x) / 2;
+      const midY = (p1.y + p2.y) / 2;
+      
+      // Renforcement supplémentaire au milieu
+      const midReinforcementSize = isMobile ? thickness * 1.0 : thickness * 0.8;
+      const midReinforcement = Bodies.circle(midX, midY, midReinforcementSize, {
+        isStatic: true,
+        friction: isMobile ? 2.5 : friction * 1.5,
+        frictionStatic: isMobile ? 5.0 : frictionStatic * 1.5,
+        restitution,
+        density: isMobile ? density * 6 : density * 4,
         label: "drawn-trail",
         render: {
           fillStyle: "#42a5f5",
@@ -170,8 +242,8 @@ export class PhysicsEngine {
         },
       });
 
-      World.add(this.world, reinforcement);
-      trailBodies.push(reinforcement);
+      World.add(this.world, midReinforcement);
+      trailBodies.push(midReinforcement);
     }
 
     // AJOUTER DES RENFORCEMENTS AUX COINS (intersections de traits)

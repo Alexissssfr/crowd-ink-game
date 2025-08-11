@@ -158,6 +158,27 @@ export class Character {
       }
     }
 
+    // Vérification supplémentaire pour les pentes
+    if (!groundFound) {
+      // Vérifier si on est sur une pente en regardant plus loin
+      const slopeCheck = this.physics.raycast(
+        { x: position.x, y: position.y + bodyRadius },
+        { x: position.x, y: position.y + bodyRadius + 20 }, // Distance plus longue
+        (body) =>
+          body !== this.body &&
+          !body.isSensor &&
+          body.label !== "character" &&
+          (body.label === "drawn-trail" ||
+            body.label === "obstacle" ||
+            body.label === "world-bound")
+      );
+
+      if (slopeCheck) {
+        groundFound = true;
+        groundBody = slopeCheck.body;
+      }
+    }
+
     // Gestion spéciale si sur un autre personnage
     const characterHit = this.physics.raycast(
       { x: position.x, y: position.y + bodyRadius },
@@ -380,8 +401,8 @@ export class Character {
 
     // Vérifier le sol devant (plus loin pour mieux détecter les pentes)
     const frontGround = this.physics.raycast(
-      { x: position.x + this.direction * bodyRadius * 1.5, y: position.y },
-      { x: position.x + this.direction * bodyRadius * 1.5, y: position.y + 20 },
+      { x: position.x + this.direction * bodyRadius * 2, y: position.y },
+      { x: position.x + this.direction * bodyRadius * 2, y: position.y + 25 },
       (body) =>
         body !== this.body && body.label === "drawn-trail" && body.isStatic
     );
@@ -392,10 +413,12 @@ export class Character {
       const frontHeight = frontGround.point.y;
       const heightDiff = frontHeight - currentHeight;
 
+      console.log(`Pente détectée: ${heightDiff.toFixed(2)} - Type: ${heightDiff < -1 ? 'downhill' : heightDiff > 1 ? 'uphill' : 'flat'}`);
+
       // Détecter le type de pente (seuils plus sensibles)
-      if (heightDiff < -1.5) {
+      if (heightDiff < -1) {
         return "downhill"; // Pente descendante
-      } else if (heightDiff > 1.5) {
+      } else if (heightDiff > 1) {
         return "uphill"; // Pente montante
       }
     }
@@ -403,24 +426,26 @@ export class Character {
     return "flat"; // Terrain plat
   }
 
-  // NOUVELLE FONCTION : Gestion des pentes
+    // NOUVELLE FONCTION : Gestion des pentes
   handleSlopeMovement() {
     const slopeType = this.detectSlope();
     const velocity = this.body.velocity;
 
     if (slopeType === "downhill") {
-      // Pente descendante - encourager légèrement la descente
+      console.log(`Personnage ${this.id} - Gestion pente descendante`);
+      
+      // Pente descendante - encourager la descente
       if (this.isGrounded) {
-        // Appliquer une force très légère pour descendre
+        // Appliquer une force pour descendre
         Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.001, // Force horizontale très légère
-          y: 0.001, // Force vers le bas très légère
+          x: this.direction * 0.003, // Force horizontale plus forte
+          y: 0.002, // Force vers le bas
         });
-
-        // Si le personnage est vraiment bloqué, l'aider un peu
-        if (Math.abs(velocity.x) < 0.1) {
+        
+        // Si le personnage est bloqué, l'aider à descendre
+        if (Math.abs(velocity.x) < 0.3) {
           Body.setVelocity(this.body, {
-            x: this.direction * 0.2, // Vitesse minimale très faible
+            x: this.direction * 0.8, // Vitesse minimale pour descendre
             y: velocity.y,
           });
         }

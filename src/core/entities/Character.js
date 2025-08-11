@@ -54,45 +54,31 @@ export class Character {
   }
 
   createBody(position) {
-    // VERSION ULTRA-SIMPLIFIÉE : Carrés au lieu de cercles pour mobile
+    // FORCER LES CARRÉS POUR TOUS LES APPAREILS (test)
     const size = this.radius * 1.5; // Taille du carré
 
-    if (this.isMobile) {
-      // SUR MOBILE : Carré simple avec physique basique
-      this.body = Bodies.rectangle(position.x, position.y, size, size, {
-        friction: 0.8,
-        frictionAir: 0.02,
-        frictionStatic: 0.9,
-        restitution: 0.0,
-        density: 0.002,
-        label: "character",
-        render: {
-          fillStyle: "#ffd54f",
-        },
-        // PROPRIÉTÉS SIMPLIFIÉES pour mobile
-        inertia: Infinity,
-        inverseInertia: 0,
-        // Pas de rotation
-        angle: 0,
-        angularVelocity: 0,
-      });
-    } else {
-      // SUR DESKTOP : Cercle avec physique complète
-      const bodyRadius = this.radius * 0.85;
-      this.body = Bodies.circle(position.x, position.y, bodyRadius, {
-        friction: 0.9,
-        frictionAir: 0.015,
-        frictionStatic: 1.0,
-        restitution: 0.0,
-        density: 0.003,
-        label: "character",
-        render: {
-          fillStyle: "#ffd54f",
-        },
-        inertia: Infinity,
-        inverseInertia: 0,
-      });
-    }
+    console.log(
+      `🔲 Création CARRE forcée pour personnage ${this.id} (mobile: ${this.isMobile})`
+    );
+
+    // CARRÉS POUR TOUS LES APPAREILS
+    this.body = Bodies.rectangle(position.x, position.y, size, size, {
+      friction: 0.8,
+      frictionAir: 0.02,
+      frictionStatic: 0.9,
+      restitution: 0.0,
+      density: 0.002,
+      label: "character",
+      render: {
+        fillStyle: "#ffd54f",
+      },
+      // PROPRIÉTÉS SIMPLIFIÉES
+      inertia: Infinity,
+      inverseInertia: 0,
+      // Pas de rotation
+      angle: 0,
+      angularVelocity: 0,
+    });
 
     this.physics.addDynamicBody(this.body);
   }
@@ -745,14 +731,24 @@ export class Character {
   }
 
   detectMobileDevice() {
-    // Détection simple des appareils mobiles
-    return (
+    // Détection améliorée des appareils mobiles
+    const isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
       ) ||
       "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0
+      navigator.maxTouchPoints > 0 ||
+      window.innerWidth <= 768; // Écrans petits
+
+    // Log pour debug
+    console.log(
+      `📱 Détection mobile: ${isMobile} (UserAgent: ${navigator.userAgent.substring(
+        0,
+        50
+      )}...)`
     );
+
+    return isMobile;
   }
 
   // Amélioration spécifique pour mobile

@@ -261,30 +261,27 @@ export class Game {
       this.characters.push(ch);
     }
 
-    // Goal sensor
-    const goalBody = Bodies.rectangle(
-      goal.x + goal.w / 2,
-      goal.y + goal.h / 2,
-      goal.w,
-      goal.h,
-      {
-        isStatic: true,
-        isSensor: true,
-        render: { fillStyle: "rgba(76, 175, 80, 0.2)" },
-      }
-    );
-    World.add(this.world, goalBody);
+    // SUPPRIMÉ : Goal sensor physique - Plus de corps invisible
     // Remove old listeners then add a new one per level
     Events.off(this.engine, "beforeUpdate");
     Events.off(this.engine, "afterUpdate");
 
-    // Comptage dynamique des persos "entièrement ou partiellement" dans la zone
+    // Comptage dynamique des persos dans la zone (sans corps physique)
     Events.on(this.engine, "afterUpdate", () => {
       this.inGoalIds.clear();
       let count = 0;
       for (const ch of this.characters) {
         if (ch.isDead) continue;
-        if (this.boundsOverlapLoose(ch.body.bounds, goalBody.bounds, 2)) {
+        
+        // Vérification directe de la position sans corps physique
+        const position = ch.body.position;
+        const inGoal =
+          position.x >= goal.x &&
+          position.x <= goal.x + goal.w &&
+          position.y >= goal.y &&
+          position.y <= goal.y + goal.h;
+          
+        if (inGoal) {
           this.inGoalIds.add(ch.body.id);
           count += 1;
         }
@@ -583,15 +580,7 @@ export class Game {
     );
   }
 
-  // looser test to count being "in" goal even if partial
-  boundsOverlapLoose(a, b, pad = 0) {
-    return (
-      a.min.x - pad <= b.max.x + pad &&
-      a.max.x + pad >= b.min.x - pad &&
-      a.min.y - pad <= b.max.y + pad &&
-      a.max.y + pad >= b.min.y - pad
-    );
-  }
+  // SUPPRIMÉ : boundsOverlapLoose - Plus utilisée
 
   beginRun({ speed, autoJump, lockSpeed }) {
     this.setTimeScale(speed);

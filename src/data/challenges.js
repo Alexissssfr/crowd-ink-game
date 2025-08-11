@@ -758,6 +758,788 @@ export const challenges = [
       
       physics.createGoalZone(120, 540, 120, 60);
     }
+  },
+
+  {
+    name: 'Pyramide Égyptienne',
+    description: 'Montez les marches de la pyramide mystérieuse',
+    numCharacters: 20,
+    targetTime: 100,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 600, y: 120, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Base de la pyramide
+      const base = Bodies.rectangle(600, 580, 400, 40, {
+        isStatic: true,
+        render: { fillStyle: '#ff9800' }
+      });
+      
+      // Marches de la pyramide
+      const steps = [
+        { x: 600, y: 520, w: 320, h: 20 },
+        { x: 600, y: 460, w: 240, h: 20 },
+        { x: 600, y: 400, w: 160, h: 20 },
+        { x: 600, y: 340, w: 80, h: 20 }
+      ];
+      
+      physics.addStaticBody(base);
+      steps.forEach((step, index) => {
+        const body = Bodies.rectangle(step.x, step.y, step.w, step.h, {
+          isStatic: true,
+          render: { fillStyle: index % 2 === 0 ? '#ff9800' : '#f57c00' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(600, 120, 140, 40);
+    }
+  },
+
+  {
+    name: 'Château Fort',
+    description: 'Assiégez le château et atteignez la tour',
+    numCharacters: 18,
+    targetTime: 120,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1000, y: 160, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Remparts du château
+      const walls = [
+        { x: 300, y: 500, w: 20, h: 200 },
+        { x: 500, y: 480, w: 20, h: 240 },
+        { x: 700, y: 460, w: 20, h: 280 },
+        { x: 900, y: 440, w: 20, h: 320 }
+      ];
+      
+      // Plateformes d'accès
+      const platforms = [
+        { x: 400, y: 520, w: 180, h: 20 },
+        { x: 600, y: 500, w: 180, h: 20 },
+        { x: 800, y: 480, w: 180, h: 20 },
+        { x: 1000, y: 200, w: 180, h: 20 }
+      ];
+      
+      walls.forEach(wall => {
+        const body = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
+          isStatic: true,
+          render: { fillStyle: '#8d6e63' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      platforms.forEach(platform => {
+        const body = Bodies.rectangle(platform.x, platform.y, platform.w, platform.h, {
+          isStatic: true,
+          render: { fillStyle: '#a1887f' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1000, 160, 140, 40);
+    }
+  },
+
+  {
+    name: 'Station Spatiale',
+    description: 'Naviguez dans la station spatiale en apesanteur',
+    numCharacters: 16,
+    targetTime: 90,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 1040, y: 160, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Modules de la station
+      const modules = [
+        { x: 300, y: 500, w: 120, h: 80 },
+        { x: 500, y: 400, w: 120, h: 80 },
+        { x: 700, y: 300, w: 120, h: 80 },
+        { x: 900, y: 200, w: 120, h: 80 }
+      ];
+      
+      // Passerelles de connexion
+      const bridges = [
+        { x: 420, y: 460, w: 160, h: 20 },
+        { x: 620, y: 360, w: 160, h: 20 },
+        { x: 820, y: 260, w: 160, h: 20 }
+      ];
+      
+      modules.forEach(module => {
+        const body = Bodies.rectangle(module.x, module.y, module.w, module.h, {
+          isStatic: true,
+          render: { fillStyle: '#3f51b5' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      bridges.forEach(bridge => {
+        const body = Bodies.rectangle(bridge.x, bridge.y, bridge.w, bridge.h, {
+          isStatic: true,
+          render: { fillStyle: '#7986cb' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 160, 140, 40);
+    }
+  },
+
+  {
+    name: 'Forêt Enchantée',
+    description: 'Traversez la forêt magique et ses arbres géants',
+    numCharacters: 22,
+    targetTime: 110,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Sol de la forêt
+      const ground = Bodies.rectangle(600, 600, 1000, 30, {
+        isStatic: true,
+        render: { fillStyle: '#4caf50' }
+      });
+      
+      // Arbres géants
+      const trees = [
+        { x: 300, y: 450, w: 40, h: 200 },
+        { x: 500, y: 420, w: 40, h: 240 },
+        { x: 700, y: 480, w: 40, h: 160 },
+        { x: 900, y: 460, w: 40, h: 180 }
+      ];
+      
+      // Ponts entre les arbres
+      const bridges = [
+        { x: 400, y: 480, w: 180, h: 20 },
+        { x: 600, y: 450, w: 180, h: 20 },
+        { x: 800, y: 470, w: 180, h: 20 }
+      ];
+      
+      physics.addStaticBody(ground);
+      
+      trees.forEach(tree => {
+        const body = Bodies.rectangle(tree.x, tree.y, tree.w, tree.h, {
+          isStatic: true,
+          render: { fillStyle: '#8d6e63' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      bridges.forEach(bridge => {
+        const body = Bodies.rectangle(bridge.x, bridge.y, bridge.w, bridge.h, {
+          isStatic: true,
+          render: { fillStyle: '#a5d6a7' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 540, 120, 60);
+    }
+  },
+
+  {
+    name: 'Canyon du Temps',
+    description: 'Traversez le canyon aux couleurs du temps',
+    numCharacters: 18,
+    targetTime: 85,
+    spawn: { x: 140, y: 480 },
+    goal: { x: 1040, y: 480, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Falaises du canyon
+      const cliffs = [
+        { x: 200, y: 600, w: 300, h: 40 },
+        { x: 900, y: 600, w: 300, h: 40 }
+      ];
+      
+      // Piliers de pierre colorés
+      const pillars = [
+        { x: 400, y: 520, w: 30, h: 120, color: '#ff5722' },
+        { x: 600, y: 500, w: 30, h: 160, color: '#ff9800' },
+        { x: 800, y: 480, w: 30, h: 200, color: '#ffc107' }
+      ];
+      
+      cliffs.forEach(cliff => {
+        const body = Bodies.rectangle(cliff.x, cliff.y, cliff.w, cliff.h, {
+          isStatic: true,
+          render: { fillStyle: '#795548' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      pillars.forEach(pillar => {
+        const body = Bodies.rectangle(pillar.x, pillar.y, pillar.w, pillar.h, {
+          isStatic: true,
+          render: { fillStyle: pillar.color }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 480, 120, 60);
+    }
+  },
+
+  {
+    name: 'Aqueduc Romain',
+    description: 'Suivez l\'aqueduc antique vers la cité',
+    numCharacters: 16,
+    targetTime: 95,
+    spawn: { x: 120, y: 480 },
+    goal: { x: 1040, y: 280, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Arches de l'aqueduc
+      const arches = [
+        { x: 300, y: 500, w: 80, h: 160 },
+        { x: 500, y: 450, w: 80, h: 200 },
+        { x: 700, y: 400, w: 80, h: 240 },
+        { x: 900, y: 350, w: 80, h: 280 }
+      ];
+      
+      // Ponts de connexion
+      const bridges = [
+        { x: 400, y: 480, w: 180, h: 20 },
+        { x: 600, y: 430, w: 180, h: 20 },
+        { x: 800, y: 380, w: 180, h: 20 }
+      ];
+      
+      arches.forEach(arch => {
+        const body = Bodies.rectangle(arch.x, arch.y, arch.w, arch.h, {
+          isStatic: true,
+          render: { fillStyle: '#8d6e63' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      bridges.forEach(bridge => {
+        const body = Bodies.rectangle(bridge.x, bridge.y, bridge.w, bridge.h, {
+          isStatic: true,
+          render: { fillStyle: '#a1887f' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 280, 120, 60);
+    }
+  },
+
+  {
+    name: 'Montagne Russe',
+    description: 'Surfez sur les vagues de la montagne russe',
+    numCharacters: 14,
+    targetTime: 70,
+    spawn: { x: 140, y: 120 },
+    goal: { x: 1040, y: 560, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Rails de la montagne russe
+      const tracks = [
+        { x: 300, y: 200, w: 200, h: 20, angle: -0.2 },
+        { x: 500, y: 300, w: 200, h: 20, angle: 0.3 },
+        { x: 700, y: 200, w: 200, h: 20, angle: -0.4 },
+        { x: 900, y: 400, w: 200, h: 20, angle: 0.5 }
+      ];
+      
+      // Plateformes de support
+      const supports = [
+        { x: 400, y: 280, w: 20, h: 120 },
+        { x: 600, y: 380, w: 20, h: 120 },
+        { x: 800, y: 280, w: 20, h: 120 }
+      ];
+      
+      tracks.forEach(track => {
+        const body = Bodies.rectangle(track.x, track.y, track.w, track.h, {
+          isStatic: true,
+          angle: track.angle,
+          render: { fillStyle: '#e91e63' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      supports.forEach(support => {
+        const body = Bodies.rectangle(support.x, support.y, support.w, support.h, {
+          isStatic: true,
+          render: { fillStyle: '#9c27b0' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 560, 120, 60);
+    }
+  },
+
+  {
+    name: 'Labyrinthe de Glace',
+    description: 'Naviguez dans le labyrinthe glacé',
+    numCharacters: 18,
+    targetTime: 130,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 160, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Sol glacé
+      const iceGround = Bodies.rectangle(600, 600, 1000, 30, {
+        isStatic: true,
+        render: { fillStyle: '#81c784' }
+      });
+      
+      // Murs de glace
+      const iceWalls = [
+        { x: 300, y: 520, w: 20, h: 120 },
+        { x: 500, y: 480, w: 20, h: 200 },
+        { x: 700, y: 440, w: 20, h: 280 },
+        { x: 900, y: 400, w: 20, h: 360 },
+        { x: 400, y: 480, w: 180, h: 20 },
+        { x: 600, y: 440, w: 180, h: 20 },
+        { x: 800, y: 400, w: 180, h: 20 },
+        { x: 1000, y: 240, w: 180, h: 20 }
+      ];
+      
+      physics.addStaticBody(iceGround);
+      
+      iceWalls.forEach(wall => {
+        const body = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
+          isStatic: true,
+          render: { fillStyle: '#4fc3f7' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 160, 140, 40);
+    }
+  },
+
+  {
+    name: 'Temple Maya',
+    description: 'Montez les marches du temple mystérieux',
+    numCharacters: 20,
+    targetTime: 105,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 600, y: 120, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Base du temple
+      const base = Bodies.rectangle(600, 580, 500, 40, {
+        isStatic: true,
+        render: { fillStyle: '#ff9800' }
+      });
+      
+      // Marches du temple
+      const steps = [
+        { x: 600, y: 520, w: 400, h: 20 },
+        { x: 600, y: 460, w: 300, h: 20 },
+        { x: 600, y: 400, w: 200, h: 20 },
+        { x: 600, y: 340, w: 100, h: 20 }
+      ];
+      
+      // Pyramide centrale
+      const pyramid = Bodies.rectangle(600, 280, 80, 80, {
+        isStatic: true,
+        render: { fillStyle: '#f57c00' }
+      });
+      
+      physics.addStaticBody(base);
+      
+      steps.forEach((step, index) => {
+        const body = Bodies.rectangle(step.x, step.y, step.w, step.h, {
+          isStatic: true,
+          render: { fillStyle: index % 2 === 0 ? '#ff9800' : '#f57c00' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.addStaticBody(pyramid);
+      physics.createGoalZone(600, 120, 140, 40);
+    }
+  },
+
+  {
+    name: 'Circuit de Formule 1',
+    description: 'Parcourez le circuit de course professionnel',
+    numCharacters: 24,
+    targetTime: 160,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 120, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Circuit complexe avec virages
+      const circuit = [
+        // Ligne droite de départ
+        { x: 200, y: 500, w: 200, h: 20, angle: 0 },
+        // Premier virage
+        { x: 400, y: 400, w: 20, h: 200, angle: 0 },
+        { x: 400, y: 300, w: 200, h: 20, angle: 0 },
+        // Deuxième virage
+        { x: 600, y: 300, w: 20, h: 200, angle: 0 },
+        { x: 600, y: 500, w: 200, h: 20, angle: 0 },
+        // Troisième virage
+        { x: 800, y: 500, w: 20, h: 200, angle: 0 },
+        { x: 800, y: 300, w: 200, h: 20, angle: 0 },
+        // Retour
+        { x: 1000, y: 300, w: 20, h: 200, angle: 0 },
+        { x: 1000, y: 500, w: 200, h: 20, angle: 0 },
+        // Ligne droite d'arrivée
+        { x: 200, y: 500, w: 200, h: 20, angle: 0 }
+      ];
+      
+      circuit.forEach(segment => {
+        const body = Bodies.rectangle(segment.x, segment.y, segment.w, segment.h, {
+          isStatic: true,
+          angle: segment.angle,
+          render: { fillStyle: '#f44336' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(120, 540, 120, 60);
+    }
+  },
+
+  {
+    name: 'Grotte de Cristal',
+    description: 'Explorez la grotte aux cristaux lumineux',
+    numCharacters: 16,
+    targetTime: 95,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Sol de la grotte
+      const caveFloor = Bodies.rectangle(600, 600, 1000, 30, {
+        isStatic: true,
+        render: { fillStyle: '#424242' }
+      });
+      
+      // Cristaux géants
+      const crystals = [
+        { x: 300, y: 480, w: 30, h: 160, color: '#e1bee7' },
+        { x: 500, y: 460, w: 30, h: 200, color: '#c8e6c9' },
+        { x: 700, y: 500, w: 30, h: 120, color: '#bbdefb' },
+        { x: 900, y: 470, w: 30, h: 180, color: '#fff9c4' }
+      ];
+      
+      // Passages entre cristaux
+      const passages = [
+        { x: 400, y: 520, w: 180, h: 20 },
+        { x: 600, y: 500, w: 180, h: 20 },
+        { x: 800, y: 520, w: 180, h: 20 }
+      ];
+      
+      physics.addStaticBody(caveFloor);
+      
+      crystals.forEach(crystal => {
+        const body = Bodies.rectangle(crystal.x, crystal.y, crystal.w, crystal.h, {
+          isStatic: true,
+          render: { fillStyle: crystal.color }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      passages.forEach(passage => {
+        const body = Bodies.rectangle(passage.x, passage.y, passage.w, passage.h, {
+          isStatic: true,
+          render: { fillStyle: '#757575' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 540, 120, 60);
+    }
+  },
+
+  {
+    name: 'Ascenseur à Bulles',
+    description: 'Montez dans les bulles flottantes',
+    numCharacters: 14,
+    targetTime: 80,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 600, y: 120, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Bulles flottantes
+      const bubbles = [
+        { x: 300, y: 480, w: 100, h: 100 },
+        { x: 500, y: 380, w: 100, h: 100 },
+        { x: 700, y: 280, w: 100, h: 100 },
+        { x: 600, y: 180, w: 100, h: 100 }
+      ];
+      
+      // Passerelles entre bulles
+      const bridges = [
+        { x: 400, y: 480, w: 180, h: 20 },
+        { x: 600, y: 380, w: 180, h: 20 },
+        { x: 700, y: 280, w: 180, h: 20 }
+      ];
+      
+      bubbles.forEach(bubble => {
+        const body = Bodies.rectangle(bubble.x, bubble.y, bubble.w, bubble.h, {
+          isStatic: true,
+          render: { fillStyle: '#e3f2fd' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      bridges.forEach(bridge => {
+        const body = Bodies.rectangle(bridge.x, bridge.y, bridge.w, bridge.h, {
+          isStatic: true,
+          render: { fillStyle: '#bbdefb' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(600, 120, 140, 40);
+    }
+  },
+
+  {
+    name: 'Parc d\'Attractions',
+    description: 'Visitez tous les manèges du parc',
+    numCharacters: 22,
+    targetTime: 140,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Sol du parc
+      const parkGround = Bodies.rectangle(600, 600, 1000, 30, {
+        isStatic: true,
+        render: { fillStyle: '#4caf50' }
+      });
+      
+      // Manèges
+      const rides = [
+        { x: 300, y: 480, w: 80, h: 80, color: '#ff5722' },
+        { x: 500, y: 460, w: 80, h: 80, color: '#ff9800' },
+        { x: 700, y: 480, w: 80, h: 80, color: '#ffc107' },
+        { x: 900, y: 460, w: 80, h: 80, color: '#4caf50' }
+      ];
+      
+      // Chemins entre manèges
+      const paths = [
+        { x: 400, y: 520, w: 180, h: 20 },
+        { x: 600, y: 500, w: 180, h: 20 },
+        { x: 800, y: 520, w: 180, h: 20 }
+      ];
+      
+      physics.addStaticBody(parkGround);
+      
+      rides.forEach(ride => {
+        const body = Bodies.rectangle(ride.x, ride.y, ride.w, ride.h, {
+          isStatic: true,
+          render: { fillStyle: ride.color }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      paths.forEach(path => {
+        const body = Bodies.rectangle(path.x, path.y, path.w, path.h, {
+          isStatic: true,
+          render: { fillStyle: '#8bc34a' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 540, 120, 60);
+    }
+  },
+
+  {
+    name: 'Ville Futuriste',
+    description: 'Naviguez dans la ville du futur',
+    numCharacters: 20,
+    targetTime: 125,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 160, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Gratte-ciels
+      const skyscrapers = [
+        { x: 300, y: 450, w: 60, h: 200 },
+        { x: 500, y: 400, w: 60, h: 280 },
+        { x: 700, y: 420, w: 60, h: 240 },
+        { x: 900, y: 380, w: 60, h: 320 }
+      ];
+      
+      // Passerelles aériennes
+      const skybridges = [
+        { x: 400, y: 480, w: 180, h: 20 },
+        { x: 600, y: 430, w: 180, h: 20 },
+        { x: 800, y: 450, w: 180, h: 20 },
+        { x: 1000, y: 240, w: 180, h: 20 }
+      ];
+      
+      skyscrapers.forEach(building => {
+        const body = Bodies.rectangle(building.x, building.y, building.w, building.h, {
+          isStatic: true,
+          render: { fillStyle: '#607d8b' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      skybridges.forEach(bridge => {
+        const body = Bodies.rectangle(bridge.x, bridge.y, bridge.w, bridge.h, {
+          isStatic: true,
+          render: { fillStyle: '#90a4ae' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 160, 140, 40);
+    }
+  },
+
+  {
+    name: 'Île Déserte',
+    description: 'Explorez l\'île déserte et ses secrets',
+    numCharacters: 18,
+    targetTime: 115,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 1040, y: 280, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Îles flottantes
+      const islands = [
+        { x: 200, y: 520, w: 160, h: 20 },
+        { x: 400, y: 460, w: 140, h: 20 },
+        { x: 600, y: 400, w: 120, h: 20 },
+        { x: 800, y: 340, w: 100, h: 20 },
+        { x: 1000, y: 320, w: 120, h: 20 }
+      ];
+      
+      // Palmiers
+      const palmTrees = [
+        { x: 300, y: 480, w: 20, h: 80 },
+        { x: 500, y: 420, w: 20, h: 80 },
+        { x: 700, y: 360, w: 20, h: 80 },
+        { x: 900, y: 300, w: 20, h: 80 }
+      ];
+      
+      islands.forEach(island => {
+        const body = Bodies.rectangle(island.x, island.y, island.w, island.h, {
+          isStatic: true,
+          render: { fillStyle: '#8bc34a' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      palmTrees.forEach(tree => {
+        const body = Bodies.rectangle(tree.x, tree.y, tree.w, tree.h, {
+          isStatic: true,
+          render: { fillStyle: '#4caf50' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 280, 140, 40);
+    }
+  },
+
+  {
+    name: 'Mine de Diamants',
+    description: 'Descendez dans la mine aux diamants précieux',
+    numCharacters: 16,
+    targetTime: 100,
+    spawn: { x: 140, y: 120 },
+    goal: { x: 980, y: 560, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Galeries de la mine
+      const galleries = [
+        { x: 300, y: 200, w: 200, h: 20 },
+        { x: 500, y: 280, w: 200, h: 20 },
+        { x: 700, y: 360, w: 200, h: 20 },
+        { x: 900, y: 440, w: 200, h: 20 }
+      ];
+      
+      // Diamants brillants
+      const diamonds = [
+        { x: 400, y: 160, w: 30, h: 30 },
+        { x: 600, y: 240, w: 30, h: 30 },
+        { x: 800, y: 320, w: 30, h: 30 },
+        { x: 1000, y: 400, w: 30, h: 30 }
+      ];
+      
+      // Échelles de descente
+      const ladders = [
+        { x: 450, y: 240, w: 20, h: 80 },
+        { x: 650, y: 320, w: 20, h: 80 },
+        { x: 850, y: 400, w: 20, h: 80 }
+      ];
+      
+      galleries.forEach(gallery => {
+        const body = Bodies.rectangle(gallery.x, gallery.y, gallery.w, gallery.h, {
+          isStatic: true,
+          render: { fillStyle: '#424242' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      diamonds.forEach(diamond => {
+        const body = Bodies.rectangle(diamond.x, diamond.y, diamond.w, diamond.h, {
+          isStatic: true,
+          render: { fillStyle: '#e1f5fe' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      ladders.forEach(ladder => {
+        const body = Bodies.rectangle(ladder.x, ladder.y, ladder.w, ladder.h, {
+          isStatic: true,
+          render: { fillStyle: '#8d6e63' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(980, 560, 140, 40);
+    }
+  },
+
+  {
+    name: 'Circuit de Karting',
+    description: 'Parcourez le circuit de karting coloré',
+    numCharacters: 20,
+    targetTime: 135,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 120, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Circuit de karting avec virages serrés
+      const track = [
+        // Ligne droite de départ
+        { x: 200, y: 500, w: 150, h: 20, angle: 0 },
+        // Premier virage à droite
+        { x: 350, y: 450, w: 20, h: 100, angle: 0 },
+        { x: 350, y: 400, w: 100, h: 20, angle: 0 },
+        // Deuxième virage à gauche
+        { x: 450, y: 400, w: 20, h: 100, angle: 0 },
+        { x: 450, y: 500, w: 100, h: 20, angle: 0 },
+        // Troisième virage à droite
+        { x: 550, y: 500, w: 20, h: 100, angle: 0 },
+        { x: 550, y: 450, w: 100, h: 20, angle: 0 },
+        // Quatrième virage à gauche
+        { x: 650, y: 450, w: 20, h: 100, angle: 0 },
+        { x: 650, y: 550, w: 100, h: 20, angle: 0 },
+        // Cinquième virage à droite
+        { x: 750, y: 550, w: 20, h: 100, angle: 0 },
+        { x: 750, y: 500, w: 100, h: 20, angle: 0 },
+        // Sixième virage à gauche
+        { x: 850, y: 500, w: 20, h: 100, angle: 0 },
+        { x: 850, y: 600, w: 100, h: 20, angle: 0 },
+        // Retour vers la ligne d'arrivée
+        { x: 200, y: 600, w: 750, h: 20, angle: 0 }
+      ];
+      
+      track.forEach(segment => {
+        const body = Bodies.rectangle(segment.x, segment.y, segment.w, segment.h, {
+          isStatic: true,
+          angle: segment.angle,
+          render: { fillStyle: '#9c27b0' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(120, 540, 120, 60);
+    }
   }
 ];
 

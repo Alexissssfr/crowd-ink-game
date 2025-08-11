@@ -474,10 +474,11 @@ export class Character {
     const velocity = this.body.velocity;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
+    // VÉRIFICATION CONTINUE - TOUJOURS ACTIVE
     // Vérification HORIZONTALE (murs verticaux)
     const horizontalSpeed = Math.abs(velocity.x);
-    if (horizontalSpeed > 0.3) {
-      const lookAheadX = Math.min(horizontalSpeed * 2.0, 15);
+    if (horizontalSpeed > 0.1) { // Seuil très bas pour détection précoce
+      const lookAheadX = Math.min(horizontalSpeed * 3.0, 20); // Distance plus longue
       const futurePosX = {
         x: position.x + (velocity.x > 0 ? lookAheadX : -lookAheadX),
         y: position.y,
@@ -502,7 +503,7 @@ export class Character {
         });
 
         // Repositionner légèrement pour éviter la traversée
-        const safeDistance = bodyRadius + 2;
+        const safeDistance = bodyRadius + 3; // Distance de sécurité augmentée
         const newX =
           velocity.x > 0
             ? hitHorizontal.point.x - safeDistance
@@ -517,8 +518,8 @@ export class Character {
 
     // Vérification VERTICALE (plafonds/sols)
     const verticalSpeed = Math.abs(velocity.y);
-    if (verticalSpeed > 0.3) {
-      const lookAheadY = Math.min(verticalSpeed * 2.0, 15);
+    if (verticalSpeed > 0.1) { // Seuil très bas pour détection précoce
+      const lookAheadY = Math.min(verticalSpeed * 3.0, 20); // Distance plus longue
       const futurePosY = {
         x: position.x,
         y: position.y + (velocity.y > 0 ? lookAheadY : -lookAheadY),
@@ -543,7 +544,7 @@ export class Character {
         });
 
         // Repositionner légèrement pour éviter la traversée
-        const safeDistance = bodyRadius + 2;
+        const safeDistance = bodyRadius + 3; // Distance de sécurité augmentée
         const newY =
           velocity.y > 0
             ? hitVertical.point.y - safeDistance
@@ -555,6 +556,111 @@ export class Character {
         });
       }
     }
+
+    // VÉRIFICATION DE POSITION ACTUELLE - CORRECTION IMMÉDIATE
+    this.correctCurrentPosition();
+  }
+
+  // NOUVELLE FONCTION : Correction de position actuelle
+  correctCurrentPosition() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Vérifier si le personnage est actuellement à l'intérieur d'un trait
+    const bodies = this.physics.getBodies();
+    let needsCorrection = false;
+    let correctionVector = { x: 0, y: 0 };
+
+    for (const body of bodies) {
+      if (body !== this.body && body.label === "drawn-trail" && body.isStatic) {
+        // Vérifier si le personnage intersecte avec ce body
+        if (this.isCharacterIntersectingTrail(body)) {
+          needsCorrection = true;
+          
+          // Calculer le vecteur de correction
+          const correction = this.calculateCorrectionVector(body);
+          correctionVector.x += correction.x;
+          correctionVector.y += correction.y;
+        }
+      }
+    }
+
+    if (needsCorrection) {
+      console.log(
+        `🔧 Personnage ${this.id} - Correction de position détectée`
+      );
+
+      // Normaliser le vecteur de correction
+      const magnitude = Math.sqrt(
+        correctionVector.x * correctionVector.x + 
+        correctionVector.y * correctionVector.y
+      );
+      
+      if (magnitude > 0) {
+        correctionVector.x = (correctionVector.x / magnitude) * (bodyRadius + 2);
+        correctionVector.y = (correctionVector.y / magnitude) * (bodyRadius + 2);
+
+        // Appliquer la correction
+        Body.setPosition(this.body, {
+          x: position.x + correctionVector.x,
+          y: position.y + correctionVector.y,
+        });
+
+        // Arrêter le mouvement dans la direction de correction
+        const velocity = this.body.velocity;
+        if (Math.abs(correctionVector.x) > 0) {
+          Body.setVelocity(this.body, {
+            x: 0,
+            y: velocity.y,
+          });
+        }
+        if (Math.abs(correctionVector.y) > 0) {
+          Body.setVelocity(this.body, {
+            x: velocity.x,
+            y: 0,
+          });
+        }
+      }
+    }
+  }
+
+  // NOUVELLE FONCTION : Vérifier si le personnage intersecte un trait
+  isCharacterIntersectingTrail(trailBody) {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Vérifier si le centre du personnage est trop proche du trait
+    const distance = this.physics.pointToBodyDistance(position, trailBody);
+    return distance < bodyRadius;
+  }
+
+  // NOUVELLE FONCTION : Calculer le vecteur de correction
+  calculateCorrectionVector(trailBody) {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Calculer la direction de sortie la plus courte
+    const bounds = trailBody.bounds;
+    const centerX = (bounds.min.x + bounds.max.x) / 2;
+    const centerY = (bounds.min.y + bounds.max.y) / 2;
+
+    const dx = position.x - centerX;
+    const dy = position.y - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance === 0) {
+      // Si exactement au centre, pousser vers le haut
+      return { x: 0, y: -bodyRadius - 2 };
+    }
+
+    // Normaliser et appliquer la distance de sécurité
+    const normalizedX = dx / distance;
+    const normalizedY = dy / distance;
+
+    return {
+      x: normalizedX * (bodyRadius + 2),
+      y: normalizedY * (bodyRadius + 2),
+    };
   }
 
   updateTargetDirection() {

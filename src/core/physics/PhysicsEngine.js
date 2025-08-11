@@ -29,10 +29,10 @@ export class PhysicsEngine {
   }
 
   setupEngine() {
-    // Configuration équilibrée entre performance et précision
-    this.engine.positionIterations = 12; // Précision élevée
-    this.engine.velocityIterations = 10; // Bon équilibre
-    this.engine.constraintIterations = 6; // Stabilité
+    // Configuration ULTRA PRÉCISE pour éviter les traversées
+    this.engine.positionIterations = 20; // Précision maximale
+    this.engine.velocityIterations = 15; // Plus d'itérations pour la stabilité
+    this.engine.constraintIterations = 8; // Stabilité renforcée
 
     // Vitesse normale pour gameplay fluide
     this.engine.timing.timeScale = 1.0;
@@ -45,6 +45,11 @@ export class PhysicsEngine {
     Events.on(this.engine, "beforeUpdate", () => {
       this.preventBodySleeping();
       this.limitExcessiveVelocities();
+    });
+
+    // Événement après mise à jour pour corrections post-physique
+    Events.on(this.engine, "afterUpdate", () => {
+      this.correctAllCharacterPositions();
     });
   }
 
@@ -622,6 +627,22 @@ export class PhysicsEngine {
     };
   }
 
+  /**
+   * Calcule la distance entre un point et un body
+   */
+  pointToBodyDistance(point, body) {
+    const bounds = body.bounds;
+    
+    // Distance au rectangle englobant
+    const closestX = Math.max(bounds.min.x, Math.min(point.x, bounds.max.x));
+    const closestY = Math.max(bounds.min.y, Math.min(point.y, bounds.max.y));
+    
+    const distanceX = point.x - closestX;
+    const distanceY = point.y - closestY;
+    
+    return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+  }
+
   preventBodySleeping() {
     // Forcer les personnages à rester "éveillés" pour des collisions précises
     const allBodies = Composite.allBodies(this.world);
@@ -671,6 +692,69 @@ export class PhysicsEngine {
           Body.setVelocity(body, {
             x: velocity.x * dampingFactor,
             y: velocity.y * dampingFactor,
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Correction globale de tous les personnages après la physique
+   */
+  correctAllCharacterPositions() {
+    const allBodies = Composite.allBodies(this.world);
+    const characterBodies = allBodies.filter(body => body.label === "character");
+    const trailBodies = allBodies.filter(body => body.label === "drawn-trail" && body.isStatic);
+
+    for (const character of characterBodies) {
+      const characterRadius = character.circleRadius || 6;
+      let needsCorrection = false;
+      let correctionVector = { x: 0, y: 0 };
+
+      // Vérifier les collisions avec tous les traits
+      for (const trail of trailBodies) {
+        const distance = this.pointToBodyDistance(character.position, trail);
+        
+        if (distance < characterRadius) {
+          needsCorrection = true;
+          
+          // Calculer la direction de sortie
+          const bounds = trail.bounds;
+          const centerX = (bounds.min.x + bounds.max.x) / 2;
+          const centerY = (bounds.min.y + bounds.max.y) / 2;
+          
+          const dx = character.position.x - centerX;
+          const dy = character.position.y - centerY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist > 0) {
+            correctionVector.x += (dx / dist) * (characterRadius + 2);
+            correctionVector.y += (dy / dist) * (characterRadius + 2);
+          } else {
+            // Si exactement au centre, pousser vers le haut
+            correctionVector.y -= characterRadius + 2;
+          }
+        }
+      }
+
+      if (needsCorrection) {
+        // Appliquer la correction
+        Body.setPosition(character, {
+          x: character.position.x + correctionVector.x,
+          y: character.position.y + correctionVector.y,
+        });
+
+        // Arrêter le mouvement dans la direction de correction
+        if (Math.abs(correctionVector.x) > 0) {
+          Body.setVelocity(character, {
+            x: 0,
+            y: character.velocity.y,
+          });
+        }
+        if (Math.abs(correctionVector.y) > 0) {
+          Body.setVelocity(character, {
+            x: character.velocity.x,
+            y: 0,
           });
         }
       }

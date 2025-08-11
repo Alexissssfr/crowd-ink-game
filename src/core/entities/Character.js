@@ -224,22 +224,35 @@ export class Character {
     const myPos = this.body.position;
     const otherPos = otherCharacter.position;
 
-    // Forces ULTRA douces pour éviter l'empilement - SEULEMENT horizontales
-    const pushDirection = myPos.x > otherPos.x ? 1 : -1;
+    // Calculer la distance entre les personnages
+    const distance = Math.sqrt(
+      Math.pow(myPos.x - otherPos.x, 2) + Math.pow(myPos.y - otherPos.y, 2)
+    );
+    const minDistance = this.radius * 2.2; // Distance minimale souhaitée
 
-    // Adapter les forces à la vitesse du jeu
-    const timeScale =
-      (this.gameState &&
-        this.gameState.gameSettings &&
-        this.gameState.gameSettings.timeScale) ||
-      1.0;
-    const forceMultiplier = Math.min(1.0, 1.0 / timeScale);
+    // Si les personnages sont trop proches, les séparer
+    if (distance < minDistance) {
+      const pushDirection = {
+        x: (myPos.x - otherPos.x) / distance,
+        y: (myPos.y - otherPos.y) / distance,
+      };
 
-    // Force horizontale UNIQUEMENT - jamais de poussée verticale
-    Body.applyForce(this.body, this.body.position, {
-      x: pushDirection * 0.0003 * forceMultiplier, // Force très faible
-      y: 0, // JAMAIS de force verticale pour éviter les envols
-    });
+      const pushForce = (minDistance - distance) * 0.001; // Force proportionnelle
+
+      // Adapter les forces à la vitesse du jeu
+      const timeScale =
+        (this.gameState &&
+          this.gameState.gameSettings &&
+          this.gameState.gameSettings.timeScale) ||
+        1.0;
+      const forceMultiplier = Math.min(1.0, 1.0 / timeScale);
+
+      // Appliquer la force de séparation
+      Body.applyForce(this.body, this.body.position, {
+        x: pushDirection.x * pushForce * forceMultiplier,
+        y: pushDirection.y * pushForce * forceMultiplier,
+      });
+    }
   }
 
   isBlockedByCharacters() {
@@ -528,6 +541,27 @@ export class Character {
       );
 
       if (hit) {
+        // SOLUTION ROBUSTE : Repositionner ET bloquer
+        const distanceToLine = Math.sqrt(
+          Math.pow(hit.point.x - position.x, 2) +
+            Math.pow(hit.point.y - position.y, 2)
+        );
+
+        // Si on est trop proche de la ligne, repositionner
+        if (distanceToLine < bodyRadius * 1.2) {
+          const pushDistance = bodyRadius * 1.5 - distanceToLine;
+          const pushDirection = {
+            x: (position.x - hit.point.x) / distanceToLine,
+            y: (position.y - hit.point.y) / distanceToLine,
+          };
+
+          // Repositionner le personnage
+          Body.setPosition(this.body, {
+            x: position.x + pushDirection.x * pushDistance,
+            y: position.y + pushDirection.y * pushDistance,
+          });
+        }
+
         // BLOQUER le mouvement dans cette direction
         if (dir.x !== 0 && Math.sign(velocity.x) === dir.x) {
           Body.setVelocity(this.body, {
@@ -541,6 +575,11 @@ export class Character {
             x: velocity.x,
             y: 0, // Arrêter le mouvement vertical
           });
+        }
+
+        // FORCER le changement de direction si bloqué
+        if (Math.abs(velocity.x) < 0.1 && Math.abs(velocity.y) < 0.1) {
+          this.targetDirection *= -1; // Inverser la direction
         }
       }
     }

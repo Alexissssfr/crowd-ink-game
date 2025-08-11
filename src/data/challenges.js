@@ -362,6 +362,402 @@ export const challenges = [
       
       physics.createGoalZone(1000, 160, 140, 40);
     }
+  },
+
+  {
+    name: 'Pont de Cordes',
+    description: 'Créez un pont suspendu pour traverser',
+    numCharacters: 16,
+    targetTime: 85,
+    spawn: { x: 120, y: 480 },
+    goal: { x: 1040, y: 480, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Plateformes de départ et d'arrivée
+      const startPlatform = Bodies.rectangle(200, 520, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      const endPlatform = Bodies.rectangle(1040, 520, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      // Piliers de support
+      const leftPillar = Bodies.rectangle(400, 450, 30, 120, {
+        isStatic: true,
+        render: { fillStyle: '#8d6e63' }
+      });
+      
+      const rightPillar = Bodies.rectangle(840, 450, 30, 120, {
+        isStatic: true,
+        render: { fillStyle: '#8d6e63' }
+      });
+      
+      physics.addStaticBody(startPlatform);
+      physics.addStaticBody(endPlatform);
+      physics.addStaticBody(leftPillar);
+      physics.addStaticBody(rightPillar);
+      physics.createGoalZone(1040, 480, 120, 60);
+    }
+  },
+
+  {
+    name: 'Spirale Ascendante',
+    description: 'Suivez la spirale vers le sommet',
+    numCharacters: 18,
+    targetTime: 95,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 600, y: 140, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Centre de la spirale
+      const centerX = 600;
+      const centerY = 600;
+      
+      // Créer les segments de la spirale
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * Math.PI) / 4;
+        const radius = 80 + i * 40;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY - Math.sin(angle) * radius;
+        
+        const segment = Bodies.rectangle(x, y, 120, 16, {
+          isStatic: true,
+          angle: angle + Math.PI / 2,
+          render: { fillStyle: '#455a64' }
+        });
+        
+        physics.addStaticBody(segment);
+      }
+      
+      // Plateforme d'arrivée au centre
+      const endPlatform = Bodies.rectangle(600, 160, 180, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      physics.addStaticBody(endPlatform);
+      physics.createGoalZone(600, 140, 140, 40);
+    }
+  },
+
+  {
+    name: 'Cascade de Plateformes',
+    description: 'Descendez en cascade de plateforme en plateforme',
+    numCharacters: 20,
+    targetTime: 75,
+    spawn: { x: 160, y: 120 },
+    goal: { x: 980, y: 560, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Série de plateformes en cascade
+      const platforms = [
+        { x: 200, y: 160, w: 180, h: 16 },
+        { x: 380, y: 240, w: 160, h: 16 },
+        { x: 540, y: 320, w: 140, h: 16 },
+        { x: 680, y: 400, w: 120, h: 16 },
+        { x: 800, y: 480, w: 100, h: 16 },
+        { x: 900, y: 560, w: 120, h: 16 }
+      ];
+      
+      platforms.forEach((platform, index) => {
+        const body = Bodies.rectangle(platform.x, platform.y, platform.w, platform.h, {
+          isStatic: true,
+          render: { fillStyle: index % 2 === 0 ? '#455a64' : '#546e7a' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(980, 560, 140, 40);
+    }
+  },
+
+  {
+    name: 'Maze Runner',
+    description: 'Trouvez la sortie du labyrinthe horizontal',
+    numCharacters: 16,
+    targetTime: 110,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Sol de base
+      const ground = Bodies.rectangle(600, 600, 1000, 30, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      // Murs du labyrinthe
+      const walls = [
+        // Couloir 1
+        { x: 300, y: 520, w: 20, h: 120 },
+        { x: 500, y: 480, w: 20, h: 200 },
+        { x: 700, y: 520, w: 20, h: 120 },
+        { x: 900, y: 480, w: 20, h: 200 },
+        
+        // Couloir 2
+        { x: 400, y: 480, w: 180, h: 20 },
+        { x: 600, y: 520, w: 180, h: 20 },
+        { x: 800, y: 480, w: 180, h: 20 }
+      ];
+      
+      physics.addStaticBody(ground);
+      walls.forEach(wall => {
+        const body = Bodies.rectangle(wall.x, wall.y, wall.w, wall.h, {
+          isStatic: true,
+          render: { fillStyle: '#546e7a' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 540, 120, 60);
+    }
+  },
+
+  {
+    name: 'Toboggan Géant',
+    description: 'Glissez sur le toboggan vers la zone d\'arrivée',
+    numCharacters: 14,
+    targetTime: 60,
+    spawn: { x: 140, y: 120 },
+    goal: { x: 980, y: 560, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Toboggan incliné
+      const toboggan = Bodies.rectangle(600, 350, 800, 20, {
+        isStatic: true,
+        angle: -0.4, // ~23 degrés
+        render: { fillStyle: '#42a5f5' }
+      });
+      
+      // Plateforme de départ
+      const startPlatform = Bodies.rectangle(200, 160, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      // Zone d'arrivée
+      const endPlatform = Bodies.rectangle(1020, 580, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      physics.addStaticBody(toboggan);
+      physics.addStaticBody(startPlatform);
+      physics.addStaticBody(endPlatform);
+      physics.createGoalZone(980, 560, 140, 40);
+    }
+  },
+
+  {
+    name: 'Parcours d\'Obstacles',
+    description: 'Surmontez tous les obstacles du parcours',
+    numCharacters: 22,
+    targetTime: 120,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 1040, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Sol de base
+      const ground = Bodies.rectangle(600, 600, 1000, 30, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      // Série d'obstacles variés
+      const obstacles = [
+        // Mur bas
+        { x: 300, y: 520, w: 20, h: 80 },
+        // Mur moyen
+        { x: 450, y: 500, w: 20, h: 120 },
+        // Mur haut
+        { x: 600, y: 480, w: 20, h: 160 },
+        // Tunnel
+        { x: 750, y: 520, w: 20, h: 80 },
+        // Dernier obstacle
+        { x: 900, y: 500, w: 20, h: 120 }
+      ];
+      
+      physics.addStaticBody(ground);
+      obstacles.forEach(obstacle => {
+        const body = Bodies.rectangle(obstacle.x, obstacle.y, obstacle.w, obstacle.h, {
+          isStatic: true,
+          render: { fillStyle: '#ff5722' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 540, 120, 60);
+    }
+  },
+
+  {
+    name: 'Ascenseur Spatial',
+    description: 'Montez dans l\'ascenseur vers les étoiles',
+    numCharacters: 16,
+    targetTime: 80,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 600, y: 120, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Plateformes d'étages
+      const floors = [
+        { x: 200, y: 580, w: 200, h: 20 }, // Rez-de-chaussée
+        { x: 400, y: 480, w: 200, h: 20 }, // 1er étage
+        { x: 600, y: 380, w: 200, h: 20 }, // 2ème étage
+        { x: 800, y: 280, w: 200, h: 20 }, // 3ème étage
+        { x: 600, y: 180, w: 200, h: 20 }  // Sommet
+      ];
+      
+      floors.forEach((floor, index) => {
+        const body = Bodies.rectangle(floor.x, floor.y, floor.w, floor.h, {
+          isStatic: true,
+          render: { fillStyle: index % 2 === 0 ? '#37474f' : '#455a64' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(600, 120, 140, 40);
+    }
+  },
+
+  {
+    name: 'Pont de Glace',
+    description: 'Traversez le pont de glace fragile',
+    numCharacters: 12,
+    targetTime: 70,
+    spawn: { x: 120, y: 480 },
+    goal: { x: 1040, y: 480, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Plateformes de départ et d'arrivée
+      const startPlatform = Bodies.rectangle(200, 520, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      const endPlatform = Bodies.rectangle(1040, 520, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#37474f' }
+      });
+      
+      // Pont de glace (segments séparés pour plus de défi)
+      const iceSegments = [
+        { x: 350, y: 480, w: 80, h: 12 },
+        { x: 450, y: 480, w: 80, h: 12 },
+        { x: 550, y: 480, w: 80, h: 12 },
+        { x: 650, y: 480, w: 80, h: 12 },
+        { x: 750, y: 480, w: 80, h: 12 },
+        { x: 850, y: 480, w: 80, h: 12 }
+      ];
+      
+      physics.addStaticBody(startPlatform);
+      physics.addStaticBody(endPlatform);
+      
+      iceSegments.forEach(segment => {
+        const body = Bodies.rectangle(segment.x, segment.y, segment.w, segment.h, {
+          isStatic: true,
+          render: { fillStyle: '#81c784' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(1040, 480, 120, 60);
+    }
+  },
+
+  {
+    name: 'Volcan en Éruption',
+    description: 'Évitez les rochers et atteignez le sommet',
+    numCharacters: 18,
+    targetTime: 90,
+    spawn: { x: 140, y: 560 },
+    goal: { x: 600, y: 140, w: 140, h: 40 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Base du volcan
+      const volcanoBase = Bodies.rectangle(600, 580, 400, 40, {
+        isStatic: true,
+        render: { fillStyle: '#8d6e63' }
+      });
+      
+      // Pente du volcan
+      const volcanoSlope = Bodies.rectangle(600, 400, 300, 20, {
+        isStatic: true,
+        angle: -0.3,
+        render: { fillStyle: '#a1887f' }
+      });
+      
+      // Sommet du volcan
+      const volcanoTop = Bodies.rectangle(600, 180, 200, 20, {
+        isStatic: true,
+        render: { fillStyle: '#6d4c41' }
+      });
+      
+      // Rochers d'obstacles
+      const rocks = [
+        { x: 450, y: 520, w: 40, h: 40 },
+        { x: 750, y: 480, w: 35, h: 35 },
+        { x: 550, y: 420, w: 45, h: 45 },
+        { x: 650, y: 360, w: 30, h: 30 }
+      ];
+      
+      physics.addStaticBody(volcanoBase);
+      physics.addStaticBody(volcanoSlope);
+      physics.addStaticBody(volcanoTop);
+      
+      rocks.forEach(rock => {
+        const body = Bodies.rectangle(rock.x, rock.y, rock.w, rock.h, {
+          isStatic: true,
+          render: { fillStyle: '#5d4037' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(600, 140, 140, 40);
+    }
+  },
+
+  {
+    name: 'Circuit de Course',
+    description: 'Complétez le circuit de course complet',
+    numCharacters: 24,
+    targetTime: 150,
+    spawn: { x: 120, y: 540 },
+    goal: { x: 120, y: 540, w: 120, h: 60 },
+    walkDirection: 1,
+    build(physics, width, height) {
+      // Circuit en forme de 8
+      const circuit = [
+        // Partie gauche du 8
+        { x: 200, y: 400, w: 200, h: 20, angle: 0 },
+        { x: 200, y: 300, w: 20, h: 200, angle: 0 },
+        { x: 200, y: 200, w: 200, h: 20, angle: 0 },
+        { x: 400, y: 300, w: 20, h: 200, angle: 0 },
+        
+        // Partie droite du 8
+        { x: 600, y: 400, w: 200, h: 20, angle: 0 },
+        { x: 600, y: 300, w: 20, h: 200, angle: 0 },
+        { x: 600, y: 200, w: 200, h: 20, angle: 0 },
+        { x: 800, y: 300, w: 20, h: 200, angle: 0 },
+        
+        // Connexion centrale
+        { x: 500, y: 300, w: 200, h: 20, angle: 0 }
+      ];
+      
+      circuit.forEach(segment => {
+        const body = Bodies.rectangle(segment.x, segment.y, segment.w, segment.h, {
+          isStatic: true,
+          angle: segment.angle,
+          render: { fillStyle: '#ff9800' }
+        });
+        physics.addStaticBody(body);
+      });
+      
+      physics.createGoalZone(120, 540, 120, 60);
+    }
   }
 ];
 

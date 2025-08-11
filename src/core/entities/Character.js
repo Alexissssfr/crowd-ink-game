@@ -407,13 +407,48 @@ export class Character {
         body !== this.body && body.label === "drawn-trail" && body.isStatic
     );
 
+    // Vérifier aussi le sol un peu plus loin pour détecter les transitions
+    const farGround = this.physics.raycast(
+      { x: position.x + this.direction * bodyRadius * 3, y: position.y },
+      { x: position.x + this.direction * bodyRadius * 3, y: position.y + 30 },
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
     if (currentGround && frontGround) {
       // Calculer la différence de hauteur
       const currentHeight = currentGround.point.y;
       const frontHeight = frontGround.point.y;
       const heightDiff = frontHeight - currentHeight;
 
-      console.log(`Pente détectée: ${heightDiff.toFixed(2)} - Type: ${heightDiff < -1 ? 'downhill' : heightDiff > 1 ? 'uphill' : 'flat'}`);
+      // Si on a aussi le sol plus loin, vérifier s'il y a une transition
+      if (farGround) {
+        const farHeight = farGround.point.y;
+        const farDiff = farHeight - currentHeight;
+
+        console.log(
+          `Pente détectée: ${heightDiff.toFixed(2)} / ${farDiff.toFixed(
+            2
+          )} - Type: ${
+            heightDiff < -1 ? "downhill" : heightDiff > 1 ? "uphill" : "flat"
+          }`
+        );
+
+        // Si la pente change plus loin, c'est une transition
+        if (
+          (heightDiff > 0 && farDiff < -1) ||
+          (heightDiff < 0 && farDiff > 1)
+        ) {
+          console.log(`Personnage ${this.id} - Transition de pente détectée`);
+          return "transition";
+        }
+      } else {
+        console.log(
+          `Pente détectée: ${heightDiff.toFixed(2)} - Type: ${
+            heightDiff < -1 ? "downhill" : heightDiff > 1 ? "uphill" : "flat"
+          }`
+        );
+      }
 
       // Détecter le type de pente (seuils plus sensibles)
       if (heightDiff < -1) {
@@ -426,29 +461,33 @@ export class Character {
     return "flat"; // Terrain plat
   }
 
-    // NOUVELLE FONCTION : Gestion des pentes
+  // NOUVELLE FONCTION : Gestion des pentes
   handleSlopeMovement() {
     const slopeType = this.detectSlope();
     const velocity = this.body.velocity;
+    const position = this.body.position;
 
     if (slopeType === "downhill") {
       console.log(`Personnage ${this.id} - Gestion pente descendante`);
-      
-      // Pente descendante - encourager la descente
+
+      // Pente descendante - FORCER la descente sur la surface
       if (this.isGrounded) {
         // Appliquer une force pour descendre
         Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.003, // Force horizontale plus forte
-          y: 0.002, // Force vers le bas
+          x: this.direction * 0.005, // Force horizontale plus forte
+          y: 0.003, // Force vers le bas
         });
-        
+
         // Si le personnage est bloqué, l'aider à descendre
         if (Math.abs(velocity.x) < 0.3) {
           Body.setVelocity(this.body, {
-            x: this.direction * 0.8, // Vitesse minimale pour descendre
+            x: this.direction * 1.0, // Vitesse minimale pour descendre
             y: velocity.y,
           });
         }
+
+        // FORCER le personnage à rester sur la surface
+        this.forceStayOnSurface();
       }
     } else if (slopeType === "uphill") {
       // Pente montante - ralentir légèrement
@@ -457,6 +496,64 @@ export class Character {
           x: velocity.x * 0.98, // Ralentir très légèrement en montée
           y: velocity.y,
         });
+      }
+    } else if (slopeType === "transition") {
+      // Transition de pente - forcer la descente
+      console.log(`Personnage ${this.id} - Gestion transition de pente`);
+      if (this.isGrounded) {
+        // Appliquer une force pour descendre sur la nouvelle pente
+        Body.applyForce(this.body, this.body.position, {
+          x: this.direction * 0.006, // Force horizontale forte
+          y: 0.004, // Force vers le bas forte
+        });
+        
+        // Forcer la descente
+        this.forceStayOnSurface();
+      }
+    } else if (slopeType === "flat") {
+      // Terrain plat - s'assurer qu'on reste sur la surface
+      if (this.isGrounded) {
+        this.forceStayOnSurface();
+      }
+    }
+  }
+
+  // NOUVELLE FONCTION : Forcer le personnage à rester sur la surface
+  forceStayOnSurface() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Trouver la surface la plus proche en dessous
+    const surfaceHit = this.physics.raycast(
+      { x: position.x, y: position.y },
+      { x: position.x, y: position.y + 30 }, // Chercher plus loin
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (surfaceHit) {
+      const surfaceY = surfaceHit.point.y;
+      const currentY = position.y;
+      const distanceToSurface = surfaceY - currentY;
+
+      // Si on est trop haut au-dessus de la surface, forcer la descente
+      if (distanceToSurface > bodyRadius + 2) {
+        console.log(`Personnage ${this.id} - Forcer descente vers surface`);
+
+        // Repositionner légèrement vers la surface
+        Body.setPosition(this.body, {
+          x: position.x,
+          y: surfaceY - bodyRadius - 1, // Juste au-dessus de la surface
+        });
+
+        // Arrêter le mouvement vertical vers le haut
+        const velocity = this.body.velocity;
+        if (velocity.y < 0) {
+          Body.setVelocity(this.body, {
+            x: velocity.x,
+            y: 0, // Arrêter le mouvement vers le haut
+          });
+        }
       }
     }
   }

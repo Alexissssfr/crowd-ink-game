@@ -493,6 +493,63 @@ export class Character {
         x: this.direction * 1.5,
         y: 0,
       });
+    } else {
+      // SI PAS DE LIGNE SOUS LE PERSONNAGE, CHERCHER PLUS LARGEMENT
+      this.findAndStickToLine();
+    }
+  }
+
+  // NOUVELLE FONCTION : Chercher et coller à une ligne
+  findAndStickToLine() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Chercher une ligne dans un rayon plus large
+    const searchRadius = bodyRadius * 3;
+
+    // Chercher en dessous et autour
+    const searchPoints = [
+      { x: position.x, y: position.y + 20 }, // Directement en dessous
+      { x: position.x - searchRadius, y: position.y + 10 }, // Gauche
+      { x: position.x + searchRadius, y: position.y + 10 }, // Droite
+      { x: position.x - searchRadius / 2, y: position.y + 15 }, // Gauche proche
+      { x: position.x + searchRadius / 2, y: position.y + 15 }, // Droite proche
+    ];
+
+    for (const searchPoint of searchPoints) {
+      const hit = this.physics.raycast(
+        { x: position.x, y: position.y },
+        searchPoint,
+        (body) =>
+          body !== this.body && body.label === "drawn-trail" && body.isStatic
+      );
+
+      if (hit) {
+        console.log(`Personnage ${this.id} - COLLAGE à ligne trouvée`);
+
+        // COLLER le personnage à cette ligne
+        Body.setPosition(this.body, {
+          x: hit.point.x,
+          y: hit.point.y - bodyRadius - 1,
+        });
+
+        // Arrêter la chute
+        Body.setVelocity(this.body, {
+          x: this.direction * 1.0,
+          y: 0,
+        });
+
+        return; // Sortir dès qu'on trouve une ligne
+      }
+    }
+
+    // Si aucune ligne trouvée, appliquer une gravité réduite
+    const velocity = this.body.velocity;
+    if (velocity.y > 2) {
+      Body.setVelocity(this.body, {
+        x: velocity.x,
+        y: velocity.y * 0.8, // Ralentir la chute
+      });
     }
   }
 

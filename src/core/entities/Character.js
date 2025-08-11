@@ -477,8 +477,8 @@ export class Character {
     // VÉRIFICATION CONTINUE - TOUJOURS ACTIVE
     // Vérification HORIZONTALE (murs verticaux)
     const horizontalSpeed = Math.abs(velocity.x);
-    if (horizontalSpeed > 0.1) { // Seuil très bas pour détection précoce
-      const lookAheadX = Math.min(horizontalSpeed * 3.0, 20); // Distance plus longue
+    if (horizontalSpeed > 0.5) { // Seuil plus élevé pour éviter les faux positifs
+      const lookAheadX = Math.min(horizontalSpeed * 2.0, 15); // Distance réduite
       const futurePosX = {
         x: position.x + (velocity.x > 0 ? lookAheadX : -lookAheadX),
         y: position.y,
@@ -493,17 +493,17 @@ export class Character {
 
       if (hitHorizontal) {
         console.log(
-          `🧱 Personnage ${this.id} - Mur vertical détecté, arrêt horizontal`
+          `🧱 Personnage ${this.id} - Mur vertical détecté, ralentissement`
         );
 
-        // ARRÊT COMPLET du mouvement horizontal
+        // RALENTISSEMENT au lieu d'arrêt complet
         Body.setVelocity(this.body, {
-          x: 0, // Arrêt total horizontal
+          x: velocity.x * 0.2, // Ralentir fortement au lieu d'arrêter
           y: velocity.y * 0.8, // Garder un peu de mouvement vertical
         });
 
         // Repositionner légèrement pour éviter la traversée
-        const safeDistance = bodyRadius + 3; // Distance de sécurité augmentée
+        const safeDistance = bodyRadius + 2; // Distance de sécurité réduite
         const newX =
           velocity.x > 0
             ? hitHorizontal.point.x - safeDistance
@@ -518,8 +518,8 @@ export class Character {
 
     // Vérification VERTICALE (plafonds/sols)
     const verticalSpeed = Math.abs(velocity.y);
-    if (verticalSpeed > 0.1) { // Seuil très bas pour détection précoce
-      const lookAheadY = Math.min(verticalSpeed * 3.0, 20); // Distance plus longue
+    if (verticalSpeed > 0.5) { // Seuil plus élevé pour éviter les faux positifs
+      const lookAheadY = Math.min(verticalSpeed * 2.0, 15); // Distance réduite
       const futurePosY = {
         x: position.x,
         y: position.y + (velocity.y > 0 ? lookAheadY : -lookAheadY),
@@ -534,17 +534,17 @@ export class Character {
 
       if (hitVertical) {
         console.log(
-          `🛡️ Personnage ${this.id} - Plafond/sol détecté, arrêt vertical`
+          `🛡️ Personnage ${this.id} - Plafond/sol détecté, ralentissement`
         );
 
-        // ARRÊT COMPLET du mouvement vertical
+        // RALENTISSEMENT au lieu d'arrêt complet
         Body.setVelocity(this.body, {
           x: velocity.x * 0.8, // Garder un peu de mouvement horizontal
-          y: 0, // Arrêt total vertical
+          y: velocity.y * 0.2, // Ralentir fortement au lieu d'arrêter
         });
 
         // Repositionner légèrement pour éviter la traversée
-        const safeDistance = bodyRadius + 3; // Distance de sécurité augmentée
+        const safeDistance = bodyRadius + 2; // Distance de sécurité réduite
         const newY =
           velocity.y > 0
             ? hitVertical.point.y - safeDistance
@@ -597,28 +597,31 @@ export class Character {
       );
       
       if (magnitude > 0) {
-        correctionVector.x = (correctionVector.x / magnitude) * (bodyRadius + 2);
-        correctionVector.y = (correctionVector.y / magnitude) * (bodyRadius + 2);
+        correctionVector.x = (correctionVector.x / magnitude) * (bodyRadius + 1); // Distance réduite
+        correctionVector.y = (correctionVector.y / magnitude) * (bodyRadius + 1);
 
-        // Appliquer la correction
-        Body.setPosition(this.body, {
-          x: position.x + correctionVector.x,
-          y: position.y + correctionVector.y,
-        });
+        // Appliquer la correction SEULEMENT si vraiment nécessaire
+        const currentDistance = this.physics.pointToBodyDistance(position, body);
+        if (currentDistance < bodyRadius * 0.5) { // Seulement si très proche
+          Body.setPosition(this.body, {
+            x: position.x + correctionVector.x,
+            y: position.y + correctionVector.y,
+          });
 
-        // Arrêter le mouvement dans la direction de correction
-        const velocity = this.body.velocity;
-        if (Math.abs(correctionVector.x) > 0) {
-          Body.setVelocity(this.body, {
-            x: 0,
-            y: velocity.y,
-          });
-        }
-        if (Math.abs(correctionVector.y) > 0) {
-          Body.setVelocity(this.body, {
-            x: velocity.x,
-            y: 0,
-          });
+          // RALENTIR au lieu d'arrêter complètement
+          const velocity = this.body.velocity;
+          if (Math.abs(correctionVector.x) > 0) {
+            Body.setVelocity(this.body, {
+              x: velocity.x * 0.3, // Ralentir au lieu d'arrêter
+              y: velocity.y,
+            });
+          }
+          if (Math.abs(correctionVector.y) > 0) {
+            Body.setVelocity(this.body, {
+              x: velocity.x,
+              y: velocity.y * 0.3, // Ralentir au lieu d'arrêter
+            });
+          }
         }
       }
     }

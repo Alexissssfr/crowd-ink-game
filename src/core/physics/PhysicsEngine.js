@@ -715,7 +715,7 @@ export class PhysicsEngine {
       for (const trail of trailBodies) {
         const distance = this.pointToBodyDistance(character.position, trail);
         
-        if (distance < characterRadius) {
+        if (distance < characterRadius * 0.8) { // Seuil plus strict
           needsCorrection = true;
           
           // Calculer la direction de sortie
@@ -728,34 +728,42 @@ export class PhysicsEngine {
           const dist = Math.sqrt(dx * dx + dy * dy);
           
           if (dist > 0) {
-            correctionVector.x += (dx / dist) * (characterRadius + 2);
-            correctionVector.y += (dy / dist) * (characterRadius + 2);
+            correctionVector.x += (dx / dist) * (characterRadius + 1); // Distance réduite
+            correctionVector.y += (dy / dist) * (characterRadius + 1);
           } else {
             // Si exactement au centre, pousser vers le haut
-            correctionVector.y -= characterRadius + 2;
+            correctionVector.y -= characterRadius + 1;
           }
         }
       }
 
       if (needsCorrection) {
-        // Appliquer la correction
-        Body.setPosition(character, {
-          x: character.position.x + correctionVector.x,
-          y: character.position.y + correctionVector.y,
-        });
+        // Appliquer la correction SEULEMENT si vraiment nécessaire
+        const magnitude = Math.sqrt(
+          correctionVector.x * correctionVector.x + 
+          correctionVector.y * correctionVector.y
+        );
+        
+        if (magnitude > characterRadius * 0.5) { // Seulement si correction significative
+          // Appliquer la correction
+          Body.setPosition(character, {
+            x: character.position.x + correctionVector.x,
+            y: character.position.y + correctionVector.y,
+          });
 
-        // Arrêter le mouvement dans la direction de correction
-        if (Math.abs(correctionVector.x) > 0) {
-          Body.setVelocity(character, {
-            x: 0,
-            y: character.velocity.y,
-          });
-        }
-        if (Math.abs(correctionVector.y) > 0) {
-          Body.setVelocity(character, {
-            x: character.velocity.x,
-            y: 0,
-          });
+          // RALENTIR au lieu d'arrêter complètement
+          if (Math.abs(correctionVector.x) > 0) {
+            Body.setVelocity(character, {
+              x: character.velocity.x * 0.5, // Ralentir au lieu d'arrêter
+              y: character.velocity.y,
+            });
+          }
+          if (Math.abs(correctionVector.y) > 0) {
+            Body.setVelocity(character, {
+              x: character.velocity.x,
+              y: character.velocity.y * 0.5, // Ralentir au lieu d'arrêter
+            });
+          }
         }
       }
     }

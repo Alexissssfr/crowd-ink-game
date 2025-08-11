@@ -937,7 +937,7 @@ export class Character {
   }
 
   assistClimbing(deltaTime) {
-    if (!this.isGrounded) return;
+    if (!this.isGrounded || this.isInGoal) return; // DÉSACTIVÉ dans la zone verte
 
     const position = this.body.position;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;

@@ -332,18 +332,18 @@ export class Character {
     const velocity = this.body.velocity;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
-    // Seuil UNIFORME de vitesse pour tous les personnages
+    // Seuil de vitesse pour éviter les faux positifs
     const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
-    if (speed < 0.5) return; // Seuil plus élevé pour cohérence
+    if (speed < 0.8) return; // Seuil plus élevé
 
-    // Distance de vérification FIXE pour tous les personnages
-    const lookAhead = Math.min(speed * 1.2, 10); // Distance conservative et fixe
+    // Distance de vérification modérée
+    const lookAhead = Math.min(speed * 1.0, 8); // Distance réduite
     const futurePos = {
       x: position.x + (velocity.x / speed) * lookAhead,
       y: position.y + (velocity.y / speed) * lookAhead,
     };
 
-    // Raycast UNIFORME pour tous les personnages
+    // Raycast simple
     const hit = this.physics.raycast(
       position,
       futurePos,
@@ -352,20 +352,15 @@ export class Character {
     );
 
     if (hit) {
-      // RÉACTION UNIFIÉE - même comportement pour tous
       console.log(
-        `Personnage ${this.id} - Collision détectée avec trait, arrêt du mouvement`
+        `Personnage ${this.id} - Collision détectée, ralentissement`
       );
 
-      // ARRÊT IMMÉDIAT ET UNIFORME pour tous les personnages
+      // RALENTISSEMENT simple au lieu d'arrêt brutal
       Body.setVelocity(this.body, {
-        x: velocity.x * 0.1, // Arrêt quasi-complet horizontal
-        y: velocity.y * 0.5, // Réduction verticale modérée
+        x: velocity.x * 0.3, // Ralentissement modéré
+        y: velocity.y * 0.7, // Réduction verticale légère
       });
-
-      // PAS de changement de direction automatique ici
-      // PAS de différenciation par type de collision
-      // Comportement IDENTIQUE pour tous les personnages
     }
   }
 
@@ -468,203 +463,7 @@ export class Character {
     }
   }
 
-  // NOUVELLE FONCTION : Détection renforcée pour les murs verticaux
-  preventWallPenetration() {
-    const position = this.body.position;
-    const velocity = this.body.velocity;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
-    // VÉRIFICATION CONTINUE - TOUJOURS ACTIVE
-    // Vérification HORIZONTALE (murs verticaux)
-    const horizontalSpeed = Math.abs(velocity.x);
-    if (horizontalSpeed > 0.5) { // Seuil plus élevé pour éviter les faux positifs
-      const lookAheadX = Math.min(horizontalSpeed * 2.0, 15); // Distance réduite
-      const futurePosX = {
-        x: position.x + (velocity.x > 0 ? lookAheadX : -lookAheadX),
-        y: position.y,
-      };
-
-      const hitHorizontal = this.physics.raycast(
-        position,
-        futurePosX,
-        (body) =>
-          body !== this.body && body.label === "drawn-trail" && body.isStatic
-      );
-
-      if (hitHorizontal) {
-        console.log(
-          `🧱 Personnage ${this.id} - Mur vertical détecté, ralentissement`
-        );
-
-        // RALENTISSEMENT au lieu d'arrêt complet
-        Body.setVelocity(this.body, {
-          x: velocity.x * 0.2, // Ralentir fortement au lieu d'arrêter
-          y: velocity.y * 0.8, // Garder un peu de mouvement vertical
-        });
-
-        // Repositionner légèrement pour éviter la traversée
-        const safeDistance = bodyRadius + 2; // Distance de sécurité réduite
-        const newX =
-          velocity.x > 0
-            ? hitHorizontal.point.x - safeDistance
-            : hitHorizontal.point.x + safeDistance;
-
-        Body.setPosition(this.body, {
-          x: newX,
-          y: position.y,
-        });
-      }
-    }
-
-    // Vérification VERTICALE (plafonds/sols)
-    const verticalSpeed = Math.abs(velocity.y);
-    if (verticalSpeed > 0.5) { // Seuil plus élevé pour éviter les faux positifs
-      const lookAheadY = Math.min(verticalSpeed * 2.0, 15); // Distance réduite
-      const futurePosY = {
-        x: position.x,
-        y: position.y + (velocity.y > 0 ? lookAheadY : -lookAheadY),
-      };
-
-      const hitVertical = this.physics.raycast(
-        position,
-        futurePosY,
-        (body) =>
-          body !== this.body && body.label === "drawn-trail" && body.isStatic
-      );
-
-      if (hitVertical) {
-        console.log(
-          `🛡️ Personnage ${this.id} - Plafond/sol détecté, ralentissement`
-        );
-
-        // RALENTISSEMENT au lieu d'arrêt complet
-        Body.setVelocity(this.body, {
-          x: velocity.x * 0.8, // Garder un peu de mouvement horizontal
-          y: velocity.y * 0.2, // Ralentir fortement au lieu d'arrêter
-        });
-
-        // Repositionner légèrement pour éviter la traversée
-        const safeDistance = bodyRadius + 2; // Distance de sécurité réduite
-        const newY =
-          velocity.y > 0
-            ? hitVertical.point.y - safeDistance
-            : hitVertical.point.y + safeDistance;
-
-        Body.setPosition(this.body, {
-          x: position.x,
-          y: newY,
-        });
-      }
-    }
-
-    // VÉRIFICATION DE POSITION ACTUELLE - CORRECTION IMMÉDIATE
-    this.correctCurrentPosition();
-  }
-
-  // NOUVELLE FONCTION : Correction de position actuelle
-  correctCurrentPosition() {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-
-    // Vérifier si le personnage est actuellement à l'intérieur d'un trait
-    const bodies = this.physics.getBodies();
-    let needsCorrection = false;
-    let correctionVector = { x: 0, y: 0 };
-
-    for (const body of bodies) {
-      if (body !== this.body && body.label === "drawn-trail" && body.isStatic) {
-        // Vérifier si le personnage intersecte avec ce body
-        if (this.isCharacterIntersectingTrail(body)) {
-          needsCorrection = true;
-          
-          // Calculer le vecteur de correction
-          const correction = this.calculateCorrectionVector(body);
-          correctionVector.x += correction.x;
-          correctionVector.y += correction.y;
-        }
-      }
-    }
-
-    if (needsCorrection) {
-      console.log(
-        `🔧 Personnage ${this.id} - Correction de position détectée`
-      );
-
-      // Normaliser le vecteur de correction
-      const magnitude = Math.sqrt(
-        correctionVector.x * correctionVector.x + 
-        correctionVector.y * correctionVector.y
-      );
-      
-      if (magnitude > 0) {
-        correctionVector.x = (correctionVector.x / magnitude) * (bodyRadius + 1); // Distance réduite
-        correctionVector.y = (correctionVector.y / magnitude) * (bodyRadius + 1);
-
-        // Appliquer la correction SEULEMENT si vraiment nécessaire
-        const currentDistance = this.physics.pointToBodyDistance(position, body);
-        if (currentDistance < bodyRadius * 0.5) { // Seulement si très proche
-          Body.setPosition(this.body, {
-            x: position.x + correctionVector.x,
-            y: position.y + correctionVector.y,
-          });
-
-          // RALENTIR au lieu d'arrêter complètement
-          const velocity = this.body.velocity;
-          if (Math.abs(correctionVector.x) > 0) {
-            Body.setVelocity(this.body, {
-              x: velocity.x * 0.3, // Ralentir au lieu d'arrêter
-              y: velocity.y,
-            });
-          }
-          if (Math.abs(correctionVector.y) > 0) {
-            Body.setVelocity(this.body, {
-              x: velocity.x,
-              y: velocity.y * 0.3, // Ralentir au lieu d'arrêter
-            });
-          }
-        }
-      }
-    }
-  }
-
-  // NOUVELLE FONCTION : Vérifier si le personnage intersecte un trait
-  isCharacterIntersectingTrail(trailBody) {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-
-    // Vérifier si le centre du personnage est trop proche du trait
-    const distance = this.physics.pointToBodyDistance(position, trailBody);
-    return distance < bodyRadius;
-  }
-
-  // NOUVELLE FONCTION : Calculer le vecteur de correction
-  calculateCorrectionVector(trailBody) {
-    const position = this.body.position;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-
-    // Calculer la direction de sortie la plus courte
-    const bounds = trailBody.bounds;
-    const centerX = (bounds.min.x + bounds.max.x) / 2;
-    const centerY = (bounds.min.y + bounds.max.y) / 2;
-
-    const dx = position.x - centerX;
-    const dy = position.y - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance === 0) {
-      // Si exactement au centre, pousser vers le haut
-      return { x: 0, y: -bodyRadius - 2 };
-    }
-
-    // Normaliser et appliquer la distance de sécurité
-    const normalizedX = dx / distance;
-    const normalizedY = dy / distance;
-
-    return {
-      x: normalizedX * (bodyRadius + 2),
-      y: normalizedY * (bodyRadius + 2),
-    };
-  }
 
   updateTargetDirection() {
     // LOGIQUE ULTRA-SIMPLE : changement de direction SEULEMENT en cas de blocage réel
@@ -847,22 +646,10 @@ export class Character {
       });
     }
 
-    // Système anti-traversée TOUJOURS actif pour éviter les traversées
-    // Détection renforcée pour les murs verticaux (boîtes)
-    this.preventWallPenetration();
-
-    // Sur mobile, on utilise une détection renforcée
-    if (this.isMobile) {
-      // Sur mobile, on vérifie TOUJOURS, peu importe la vitesse
-      this.preventTrailPenetrationMobile();
-    } else {
-      // Sur desktop, logique normale
-      if (timeScale <= 2.0) {
-        this.preventTrailPenetration();
-      } else {
-        // À très haute vitesse, protection réduite mais toujours présente
-        this.preventTrailPenetrationHighSpeed();
-      }
+    // Système anti-traversée SIMPLE et EFFICACE
+    // Seulement la détection de base, pas de correction agressive
+    if (timeScale <= 1.5) {
+      this.preventTrailPenetration();
     }
 
     // checkGroundAhead() DÉSACTIVÉ - causait des changements de direction inappropriés

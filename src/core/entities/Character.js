@@ -1331,36 +1331,9 @@ export class Character {
       position.y >= goal.y &&
       position.y <= goal.y + goal.h;
 
-    // Si le personnage entre dans la zone, ralentir pour éviter qu'il en sorte
-    if (inGoal && !this.isInGoal) {
-      // Réduire la vitesse pour stabiliser dans la zone
-      const velocity = this.body.velocity;
-      Body.setVelocity(this.body, {
-        x: velocity.x * 0.5,
-        y: velocity.y * 0.5,
-      });
-    }
-
-    // Si dans la zone, appliquer une force centripète douce vers le centre
-    if (inGoal) {
-      const goalCenter = {
-        x: goal.x + goal.w / 2,
-        y: goal.y + goal.h / 2,
-      };
-
-      const distance = Math.sqrt(
-        (position.x - goalCenter.x) ** 2 + (position.y - goalCenter.y) ** 2
-      );
-
-      if (distance > 10) {
-        // Seulement si pas au centre
-        const forceToCenter = {
-          x: (goalCenter.x - position.x) * 0.0001,
-          y: (goalCenter.y - position.y) * 0.0001,
-        };
-        Body.applyForce(this.body, this.body.position, forceToCenter);
-      }
-    }
+    // SUPPRIMÉ : Toute attraction vers la zone verte
+    // La zone verte n'a AUCUN effet magnétique
+    // C'est au joueur de dessiner des traits bleus pour enfermer les personnages
 
     this.isInGoal = inGoal;
   }

@@ -93,7 +93,7 @@ export class Character {
     this.handleMovement(deltaTime);
     this.checkStuckState();
 
-    // NOUVEAU SYSTÈME : Rails magnétiques
+    // SOLUTION ULTRA SIMPLE : Forcer le suivi de ligne
     this.handleSlopeMovement();
 
     this.checkBounds();
@@ -460,89 +460,40 @@ export class Character {
     return "flat"; // Terrain plat
   }
 
-  // NOUVEAU SYSTÈME : Rails magnétiques invisibles
+  // SOLUTION ULTRA SIMPLE : Forcer le suivi de ligne
   handleSlopeMovement() {
-    // SYSTÈME SIMPLE : Les personnages suivent automatiquement les rails
+    // SOLUTION DIRECTE : Repositionner sur la ligne
     if (this.isGrounded) {
-      this.followMagneticRail();
+      this.forceOnLine();
     }
   }
 
-  // NOUVEAU SYSTÈME : Rails magnétiques
-  followMagneticRail() {
+  // SOLUTION ULTRA SIMPLE : Forcer sur la ligne
+  forceOnLine() {
     const position = this.body.position;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
-    // Chercher le rail le plus proche
-    const railPoint = this.findNearestRailPoint(position);
-
-    if (railPoint) {
-      // Calculer la distance au rail
-      const distanceToRail = Math.sqrt(
-        Math.pow(position.x - railPoint.x, 2) +
-          Math.pow(position.y - railPoint.y, 2)
-      );
-
-      // Si on est trop loin du rail, se rapprocher
-      if (distanceToRail > bodyRadius + 2) {
-        // Calculer la direction vers le rail
-        const directionX = (railPoint.x - position.x) / distanceToRail;
-        const directionY = (railPoint.y - position.y) / distanceToRail;
-
-        // Appliquer une force magnétique vers le rail
-        Body.applyForce(this.body, this.body.position, {
-          x: directionX * 0.005, // Force magnétique horizontale
-          y: directionY * 0.005, // Force magnétique verticale
-        });
-
-        // Si vraiment loin, repositionner
-        if (distanceToRail > bodyRadius + 5) {
-          Body.setPosition(this.body, {
-            x: railPoint.x,
-            y: railPoint.y - bodyRadius - 1,
-          });
-        }
-      }
-
-      // Forcer la vitesse dans la direction du rail
-      const velocity = this.body.velocity;
-      if (Math.abs(velocity.x) < 1.0) {
-        Body.setVelocity(this.body, {
-          x: this.direction * 1.2,
-          y: 0,
-        });
-      }
-    }
-  }
-
-  // NOUVEAU SYSTÈME : Trouver le point de rail le plus proche
-  findNearestRailPoint(position) {
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
-    const searchRadius = bodyRadius * 4;
-
-    // Chercher dans un rayon autour du personnage
-    const searchStart = {
-      x: position.x - searchRadius,
-      y: position.y - searchRadius,
-    };
-    const searchEnd = {
-      x: position.x + searchRadius,
-      y: position.y + searchRadius,
-    };
-
-    // Raycast multiple pour trouver le rail le plus proche
-    const railHit = this.physics.raycast(
-      searchStart,
-      searchEnd,
+    // Chercher la ligne directement sous le personnage
+    const hit = this.physics.raycast(
+      { x: position.x, y: position.y },
+      { x: position.x, y: position.y + 30 },
       (body) =>
         body !== this.body && body.label === "drawn-trail" && body.isStatic
     );
 
-    if (railHit) {
-      return railHit.point;
-    }
+    if (hit) {
+      // REPOSITIONNER DIRECTEMENT sur la ligne
+      Body.setPosition(this.body, {
+        x: position.x,
+        y: hit.point.y - bodyRadius - 1,
+      });
 
-    return null;
+      // FORCER la vitesse horizontale
+      Body.setVelocity(this.body, {
+        x: this.direction * 1.5,
+        y: 0,
+      });
+    }
   }
 
   // NOUVELLE FONCTION : Forcer le personnage à rester sur la surface
@@ -1023,10 +974,10 @@ export class Character {
     const forceMultiplier = Math.max(0.1, 1.0 / Math.sqrt(timeScale)); // Réduction progressive
     const speedMultiplier = Math.max(0.3, 1.0 / timeScale); // Limite la vitesse max
 
-    // NOUVEAU SYSTÈME : Mouvement simple guidé par les rails
+    // SOLUTION ULTRA SIMPLE : Mouvement de base
     const adaptedMaxSpeed = this.maxSpeed;
     if (Math.abs(currentVelocity.x) < adaptedMaxSpeed) {
-      const force = this.moveForce * this.direction * 0.5; // Force modérée
+      const force = this.moveForce * this.direction * 0.8; // Force normale
       Body.applyForce(this.body, this.body.position, { x: force, y: 0 });
     }
 

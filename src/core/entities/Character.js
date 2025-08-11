@@ -96,6 +96,9 @@ export class Character {
     // SOLUTION ULTRA SIMPLE : Forcer le suivi de ligne
     this.handleSlopeMovement();
 
+    // EMPÊCHER TOUTE TRAVERSÉE DE LIGNES
+    this.preventLineTraversal();
+
     this.checkBounds();
 
     // Vérification de la zone objectif
@@ -550,6 +553,77 @@ export class Character {
         x: velocity.x,
         y: velocity.y * 0.8, // Ralentir la chute
       });
+    }
+  }
+
+  // NOUVELLE FONCTION : Empêcher TOUTE traversée de lignes
+  preventLineTraversal() {
+    const position = this.body.position;
+    const velocity = this.body.velocity;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Vérifier dans TOUTES les directions
+    const directions = [
+      { x: 1, y: 0 }, // Droite
+      { x: -1, y: 0 }, // Gauche
+      { x: 0, y: 1 }, // Bas
+      { x: 0, y: -1 }, // Haut
+      { x: 1, y: 1 }, // Bas-droite
+      { x: -1, y: 1 }, // Bas-gauche
+      { x: 1, y: -1 }, // Haut-droite
+      { x: -1, y: -1 }, // Haut-gauche
+    ];
+
+    for (const dir of directions) {
+      const checkDistance = bodyRadius * 2;
+      const checkPoint = {
+        x: position.x + dir.x * checkDistance,
+        y: position.y + dir.y * checkDistance,
+      };
+
+      const hit = this.physics.raycast(
+        { x: position.x, y: position.y },
+        checkPoint,
+        (body) =>
+          body !== this.body && body.label === "drawn-trail" && body.isStatic
+      );
+
+      if (hit) {
+        console.log(
+          `Personnage ${this.id} - TRAVERSÉE BLOQUÉE dans direction ${dir.x},${dir.y}`
+        );
+
+        // BLOQUER le mouvement dans cette direction
+        if (dir.x !== 0 && Math.sign(velocity.x) === dir.x) {
+          Body.setVelocity(this.body, {
+            x: 0, // Arrêter le mouvement horizontal
+            y: velocity.y,
+          });
+        }
+
+        if (dir.y !== 0 && Math.sign(velocity.y) === dir.y) {
+          Body.setVelocity(this.body, {
+            x: velocity.x,
+            y: 0, // Arrêter le mouvement vertical
+          });
+        }
+
+        // Repositionner légèrement pour éviter la traversée
+        const distanceToLine = Math.sqrt(
+          Math.pow(position.x - hit.point.x, 2) +
+            Math.pow(position.y - hit.point.y, 2)
+        );
+
+        if (distanceToLine < bodyRadius) {
+          const directionX = (position.x - hit.point.x) / distanceToLine;
+          const directionY = (position.y - hit.point.y) / distanceToLine;
+
+          Body.setPosition(this.body, {
+            x: hit.point.x + directionX * (bodyRadius + 1),
+            y: hit.point.y + directionY * (bodyRadius + 1),
+          });
+        }
+      }
     }
   }
 

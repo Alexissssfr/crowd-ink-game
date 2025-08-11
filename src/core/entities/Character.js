@@ -11,6 +11,7 @@ export class Character {
     this.isInGoal = false;
     this.id = this.generateId();
     this.gameState = options.gameState; // Référence vers GameState
+    this.soundManager = options.soundManager; // Gestionnaire de sons
 
     // Détection mobile pour ajuster la collision
     this.isMobile = this.detectMobileDevice();
@@ -1048,6 +1049,11 @@ export class Character {
 
     Body.applyForce(this.body, this.body.position, jumpVector);
     this.isGrounded = false; // Force l'état non-grounded
+
+    // Son de saut
+    if (this.soundManager) {
+      this.soundManager.play("characterJump");
+    }
   }
 
   assistClimbing(deltaTime) {

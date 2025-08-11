@@ -1,102 +1,141 @@
 import { Game } from "./modules/game.js";
-import { levels } from "./modules/levels.js";
+import { levels } from "./data/challenges.js";
+import { SoundManager } from "./core/audio/SoundManager.js";
 
-const canvas = document.getElementById("game");
-const hud = {
-  inkBar: document.getElementById("inkBar"),
-  inkFill: document.getElementById("inkFill"),
-  inkText: document.getElementById("inkText"),
-  savedText: document.getElementById("savedText"),
-  remainingText: document.getElementById("remainingText"),
-  levelText: document.getElementById("levelText"),
-  timeText: document.getElementById("timeText"),
-  btnReset: document.getElementById("btnReset"),
-  btnNext: document.getElementById("btnNext"),
-  btnPause: document.getElementById("btnPause"),
-  speedSlider: document.getElementById("speedSlider"),
-  speedText: document.getElementById("speedText"),
-  overlay: document.getElementById("overlay"),
-  overlayTitle: document.getElementById("overlayTitle"),
-  overlaySubtitle: document.getElementById("overlaySubtitle"),
-  overlayScore: document.getElementById("overlayScore"),
-  overlayTime: document.getElementById("overlayTime"),
-  ovlRestart: document.getElementById("ovlRestart"),
-  ovlNext: document.getElementById("ovlNext"),
-  ovlLevelSelect: document.getElementById("ovlLevelSelect"),
-  // Start panel
-  startPanel: document.getElementById("startPanel"),
-  startSpeed: document.getElementById("startSpeed"),
-  startSpeedText: document.getElementById("startSpeedText"),
-  optAutoJump: document.getElementById("optAutoJump"),
-  optLockSpeed: document.getElementById("optLockSpeed"),
-  btnStartRun: document.getElementById("btnStartRun"),
-  // Level select
-  levelSelect: document.getElementById("levelSelect"),
-  levelList: document.getElementById("levelList"),
-  btnCloseLevelSelect: document.getElementById("btnCloseLevelSelect"),
-};
+class GameApp {
+  constructor() {
+    this.canvas = document.getElementById("gameCanvas");
+    this.soundManager = new SoundManager();
+    this.game = null;
+    this.init();
+  }
 
-const game = new Game(canvas, hud, levels);
-game.start();
+  init() {
+    // Initialiser le jeu
+    this.game = new Game(this.canvas, this.getHudElements(), levels);
 
-// Controls
-hud.btnReset.addEventListener("click", () => game.resetLevel());
-hud.btnNext.addEventListener("click", () => game.nextLevel());
-hud.btnPause.addEventListener("click", () => game.togglePause());
+    // Passer le gestionnaire de sons au jeu
+    this.game.soundManager = this.soundManager;
 
-hud.ovlRestart.addEventListener("click", () => {
-  hud.overlay.style.display = "none";
-  game.resetLevel();
-});
-hud.ovlNext.addEventListener("click", () => {
-  hud.overlay.style.display = "none";
-  game.nextLevel();
-});
-hud.ovlLevelSelect.addEventListener("click", () => {
-  hud.overlay.style.display = "none";
-  game.openLevelSelect();
-});
+    // Initialiser les contrôles
+    this.initControls();
 
-// Speed control
-hud.speedSlider.addEventListener("input", () => {
-  const v = parseFloat(hud.speedSlider.value);
-  hud.speedText.textContent = `${v.toFixed(2)}x`;
-  game.setTimeScale(v);
-});
+    // Démarrer le jeu
+    this.game.start();
+  }
 
-// Start panel controls
-hud.startSpeed.addEventListener("input", () => {
-  const v = parseFloat(hud.startSpeed.value);
-  hud.startSpeedText.textContent = `${v.toFixed(2)}x`;
-});
-hud.btnStartRun.addEventListener("click", () => {
-  const speed = parseFloat(hud.startSpeed.value);
-  const autoJump = !!hud.optAutoJump.checked;
-  const lockSpeed = !!hud.optLockSpeed.checked;
-  hud.startPanel.style.display = "none";
-  // sync HUD slider value/label with start selection
-  hud.speedSlider.value = String(speed);
-  hud.speedText.textContent = `${speed.toFixed(2)}x`;
-  game.beginRun({ speed, autoJump, lockSpeed });
-  // persist last settings for next level selection
-  game.lastSettings = { speed, autoJump, lockSpeed };
-});
+  getHudElements() {
+    return {
+      inkFill: document.getElementById("inkFill"),
+      inkText: document.getElementById("inkText"),
+      savedText: document.getElementById("savedText"),
+      timeText: document.getElementById("timeText"),
+      levelText: document.getElementById("levelText"),
+      speedSlider: document.getElementById("speedSlider"),
+      speedValue: document.getElementById("speedValue"),
+      resetBtn: document.getElementById("resetBtn"),
+      validateBtn: document.getElementById("validateBtn"),
+      soundBtn: document.getElementById("soundBtn"),
+      soundIcon: document.getElementById("soundIcon"),
+      message: document.getElementById("message"),
+    };
+  }
 
-// Level select
-hud.btnCloseLevelSelect.addEventListener("click", () => {
-  hud.levelSelect.style.display = "none";
-});
+  initControls() {
+    const hud = this.getHudElements();
 
-window.addEventListener("resize", () => game.resize());
+    // Bouton Reset
+    hud.resetBtn.addEventListener("click", () => {
+      this.soundManager.play("buttonClick");
+      this.game.resetLevel();
+    });
 
-// Shortcuts
-window.addEventListener("keydown", (e) => {
-  if (e.key.toLowerCase() === "r") game.resetLevel();
-  if (e.key.toLowerCase() === "n") game.nextLevel();
-  if (e.key === " ") game.togglePause();
-});
+    // Bouton Valider
+    hud.validateBtn.addEventListener("click", () => {
+      this.soundManager.play("buttonClick");
+      this.game.requestValidation();
+    });
 
-// Double-click anywhere to validate score after 2s window
-window.addEventListener("dblclick", () => {
-  game.requestValidation(2000);
+    // Slider de vitesse
+    hud.speedSlider.addEventListener("input", (e) => {
+      const speed = parseFloat(e.target.value);
+      this.game.setTimeScale(speed);
+      hud.speedValue.textContent = speed.toFixed(1) + "x";
+      this.soundManager.play("buttonClick");
+    });
+
+    // Bouton Son
+    hud.soundBtn.addEventListener("click", () => {
+      const isMuted = this.soundManager.toggleMute();
+      hud.soundIcon.textContent = isMuted ? "🔇" : "🔊";
+      this.soundManager.play("buttonClick");
+    });
+
+    // Raccourcis clavier
+    document.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "r":
+        case "R":
+          this.soundManager.play("buttonClick");
+          this.game.resetLevel();
+          break;
+        case " ":
+          e.preventDefault();
+          this.soundManager.play("buttonClick");
+          this.game.togglePause();
+          break;
+        case "v":
+        case "V":
+          this.soundManager.play("buttonClick");
+          this.game.requestValidation();
+          break;
+      }
+    });
+
+    // Mise à jour de l'interface
+    this.updateHud = () => {
+      // Encre
+      const inkPercent = (this.game.inkRemaining / this.game.inkMax) * 100;
+      hud.inkFill.style.width = inkPercent + "%";
+      hud.inkText.textContent = `${this.game.inkRemaining}/${this.game.inkMax}`;
+
+      // Personnages sauvés
+      hud.savedText.textContent = `${this.game.savedCount}/${this.game.totalCharacters}`;
+
+      // Temps
+      const timeMs = this.game.elapsedMs;
+      const minutes = Math.floor(timeMs / 60000);
+      const seconds = Math.floor((timeMs % 60000) / 1000);
+      hud.timeText.textContent = `${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+      // Niveau
+      hud.levelText.textContent = this.game.currentLevelIndex + 1;
+
+      // Vitesse
+      hud.speedSlider.value = this.game.timeScale;
+      hud.speedValue.textContent = this.game.timeScale.toFixed(1) + "x";
+    };
+
+    // Mise à jour périodique
+    setInterval(() => {
+      this.updateHud();
+    }, 100);
+  }
+
+  showMessage(text, duration = 3000) {
+    const message = document.getElementById("message");
+    message.textContent = text;
+    message.style.display = "block";
+
+    setTimeout(() => {
+      message.style.display = "none";
+    }, duration);
+  }
+}
+
+// Démarrer l'application quand la page est chargée
+document.addEventListener("DOMContentLoaded", () => {
+  new GameApp();
 });

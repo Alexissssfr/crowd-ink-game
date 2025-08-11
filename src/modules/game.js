@@ -1,5 +1,6 @@
 import { createPathBodyFromPoints, distance, clamp } from "./utils.js";
 import { CharacterController } from "./walker.js";
+import { SoundManager } from "../core/audio/SoundManager.js";
 
 const {
   Engine,
@@ -22,6 +23,9 @@ export class Game {
     this.levels = levels;
     this.currentLevelIndex = 0;
     this.isPaused = false;
+
+    // Gestionnaire de sons
+    this.soundManager = new SoundManager();
 
     // Canvas logical size
     this.width = 1200;
@@ -110,6 +114,7 @@ export class Game {
         if (this.inkRemaining <= 0) return;
         this.isDrawing = true;
         this.currentStroke = [getMouse(ev)];
+        this.soundManager.play('lineDraw');
       } else if (ev.button === 2) {
         // Erase
         const m = getMouse(ev);
@@ -157,6 +162,7 @@ export class Game {
     this.drawnSegments.push({ points: this.currentStroke.slice(), body });
     this.currentStroke = [];
     this.updateHud();
+    this.soundManager.play('lineDraw');
   }
 
   eraseAt(x, y) {

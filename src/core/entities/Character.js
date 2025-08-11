@@ -54,23 +54,45 @@ export class Character {
   }
 
   createBody(position) {
-    // Corps IDENTIQUE pour tous les personnages (cohérence absolue)
-    const bodyRadius = this.radius * 0.85; // Taille unifiée
+    // VERSION ULTRA-SIMPLIFIÉE : Carrés au lieu de cercles pour mobile
+    const size = this.radius * 1.5; // Taille du carré
 
-    this.body = Bodies.circle(position.x, position.y, bodyRadius, {
-      friction: 0.9, // Friction TRÈS élevée et identique pour tous
-      frictionAir: 0.015, // Résistance de l'air unifiée
-      frictionStatic: 1.0, // Friction statique maximale et identique
-      restitution: 0.0, // ZÉRO rebond pour tous
-      density: 0.003, // Densité identique pour tous les personnages
-      label: "character",
-      render: {
-        fillStyle: "#ffd54f",
-      },
-      // IMPORTANTES : propriétés supplémentaires pour cohérence
-      inertia: Infinity, // Pas de rotation pour comportement prévisible
-      inverseInertia: 0,
-    });
+    if (this.isMobile) {
+      // SUR MOBILE : Carré simple avec physique basique
+      this.body = Bodies.rectangle(position.x, position.y, size, size, {
+        friction: 0.8,
+        frictionAir: 0.02,
+        frictionStatic: 0.9,
+        restitution: 0.0,
+        density: 0.002,
+        label: "character",
+        render: {
+          fillStyle: "#ffd54f",
+        },
+        // PROPRIÉTÉS SIMPLIFIÉES pour mobile
+        inertia: Infinity,
+        inverseInertia: 0,
+        // Pas de rotation
+        angle: 0,
+        angularVelocity: 0,
+      });
+    } else {
+      // SUR DESKTOP : Cercle avec physique complète
+      const bodyRadius = this.radius * 0.85;
+      this.body = Bodies.circle(position.x, position.y, bodyRadius, {
+        friction: 0.9,
+        frictionAir: 0.015,
+        frictionStatic: 1.0,
+        restitution: 0.0,
+        density: 0.003,
+        label: "character",
+        render: {
+          fillStyle: "#ffd54f",
+        },
+        inertia: Infinity,
+        inverseInertia: 0,
+      });
+    }
 
     this.physics.addDynamicBody(this.body);
   }
@@ -221,6 +243,21 @@ export class Character {
   }
 
   handleCharacterCollision(otherCharacter) {
+    // SUR MOBILE : Collision ultra-simplifiée
+    if (this.isMobile) {
+      // Seulement une petite force de séparation horizontale
+      const myPos = this.body.position;
+      const otherPos = otherCharacter.position;
+      const pushDirection = myPos.x > otherPos.x ? 1 : -1;
+
+      Body.applyForce(this.body, this.body.position, {
+        x: pushDirection * 0.0001, // Force très faible
+        y: 0, // Pas de force verticale
+      });
+      return;
+    }
+
+    // SUR DESKTOP : Collision normale
     const myPos = this.body.position;
     const otherPos = otherCharacter.position;
 
@@ -229,8 +266,7 @@ export class Character {
       Math.pow(myPos.x - otherPos.x, 2) + Math.pow(myPos.y - otherPos.y, 2)
     );
 
-    // Distance minimale adaptée selon l'appareil
-    const minDistance = this.isMobile ? this.radius * 1.8 : this.radius * 2.2;
+    const minDistance = this.radius * 2.2;
 
     // Si les personnages sont trop proches, les séparer
     if (distance < minDistance) {
@@ -239,9 +275,7 @@ export class Character {
         y: (myPos.y - otherPos.y) / distance,
       };
 
-      // Force adaptée selon l'appareil
-      const baseForce = this.isMobile ? 0.0005 : 0.001;
-      const pushForce = (minDistance - distance) * baseForce;
+      const pushForce = (minDistance - distance) * 0.001;
 
       // Adapter les forces à la vitesse du jeu
       const timeScale =
@@ -251,15 +285,10 @@ export class Character {
         1.0;
       const forceMultiplier = Math.min(1.0, 1.0 / timeScale);
 
-      // SUR MOBILE : Forces réduites pour éviter les comportements erratiques
-      const finalMultiplier = this.isMobile
-        ? forceMultiplier * 0.5
-        : forceMultiplier;
-
       // Appliquer la force de séparation
       Body.applyForce(this.body, this.body.position, {
-        x: pushDirection.x * pushForce * finalMultiplier,
-        y: pushDirection.y * pushForce * finalMultiplier,
+        x: pushDirection.x * pushForce * forceMultiplier,
+        y: pushDirection.y * pushForce * forceMultiplier,
       });
     }
   }
@@ -608,61 +637,24 @@ export class Character {
   preventLineTraversalMobile() {
     const position = this.body.position;
     const velocity = this.body.velocity;
-    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+    const size = this.radius * 1.5; // Taille du carré
 
-    // SUR MOBILE : Vérification PLUS SIMPLE et PLUS EFFICACE
-    const directions = [
-      { x: 1, y: 0 }, // Droite
-      { x: -1, y: 0 }, // Gauche
-    ]; // SEULEMENT horizontal sur mobile pour les performances
+    // SUR MOBILE : Vérification ULTRA-SIMPLIFIÉE
+    // Seulement vérifier si on touche une ligne
+    const hit = this.physics.raycast(
+      { x: position.x, y: position.y },
+      { x: position.x + this.direction * size, y: position.y },
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
 
-    for (const dir of directions) {
-      const checkDistance = bodyRadius * 2.0; // Distance plus longue sur mobile
-      const checkPoint = {
-        x: position.x + dir.x * checkDistance,
-        y: position.y + dir.y * checkDistance,
-      };
-
-      const hit = this.physics.raycast(
-        { x: position.x, y: position.y },
-        checkPoint,
-        (body) =>
-          body !== this.body && body.label === "drawn-trail" && body.isStatic
-      );
-
-      if (hit) {
-        // SUR MOBILE : Solution PLUS DOUCE
-        const distanceToLine = Math.sqrt(
-          Math.pow(hit.point.x - position.x, 2) +
-            Math.pow(hit.point.y - position.y, 2)
-        );
-
-        // Repositionnement PLUS DOUX sur mobile
-        if (distanceToLine < bodyRadius * 1.5) {
-          const pushDistance = bodyRadius * 2.0 - distanceToLine;
-          const pushDirection = {
-            x: (position.x - hit.point.x) / distanceToLine,
-            y: (position.y - hit.point.y) / distanceToLine,
-          };
-
-          // Repositionner PLUS DOUCEMENT
-          Body.setPosition(this.body, {
-            x: position.x + pushDirection.x * pushDistance * 0.5, // Force réduite
-            y: position.y + pushDirection.y * pushDistance * 0.5,
-          });
-        }
-
-        // BLOQUER le mouvement PLUS DOUCEMENT sur mobile
-        if (dir.x !== 0 && Math.sign(velocity.x) === dir.x) {
-          Body.setVelocity(this.body, {
-            x: velocity.x * 0.1, // Ralentissement au lieu d'arrêt brutal
-            y: velocity.y,
-          });
-        }
-
-        // SUR MOBILE : AUCUN changement de direction forcé
-        // Les personnages gardent leur direction initiale
-      }
+    if (hit) {
+      // SUR MOBILE : Solution ULTRA-SIMPLE
+      // Juste arrêter le mouvement horizontal
+      Body.setVelocity(this.body, {
+        x: 0, // Arrêt complet
+        y: velocity.y, // Garder le mouvement vertical
+      });
     }
   }
 

@@ -93,6 +93,9 @@ export class Character {
     this.handleMovement(deltaTime);
     this.checkStuckState();
 
+    // Gestion des pentes pour navigation naturelle
+    this.handleSlopeMovement();
+
     // Anti-rebond pour éviter les traversées
     this.preventBouncing();
 
@@ -361,6 +364,77 @@ export class Character {
         x: velocity.x * 0.3, // Ralentissement modéré
         y: velocity.y * 0.7, // Réduction verticale légère
       });
+    }
+  }
+
+  // NOUVELLE FONCTION : Détection de pente
+  detectSlope() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Vérifier le sol actuel
+    const currentGround = this.physics.raycast(
+      { x: position.x, y: position.y },
+      { x: position.x, y: position.y + 15 },
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    // Vérifier le sol devant (plus loin pour mieux détecter les pentes)
+    const frontGround = this.physics.raycast(
+      { x: position.x + this.direction * bodyRadius * 1.5, y: position.y },
+      { x: position.x + this.direction * bodyRadius * 1.5, y: position.y + 20 },
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (currentGround && frontGround) {
+      // Calculer la différence de hauteur
+      const currentHeight = currentGround.point.y;
+      const frontHeight = frontGround.point.y;
+      const heightDiff = frontHeight - currentHeight;
+
+      // Détecter le type de pente (seuils plus sensibles)
+      if (heightDiff < -1.5) {
+        return "downhill"; // Pente descendante
+      } else if (heightDiff > 1.5) {
+        return "uphill"; // Pente montante
+      }
+    }
+
+    return "flat"; // Terrain plat
+  }
+
+  // NOUVELLE FONCTION : Gestion des pentes
+  handleSlopeMovement() {
+    const slopeType = this.detectSlope();
+    const velocity = this.body.velocity;
+
+    if (slopeType === "downhill") {
+      // Pente descendante - encourager la descente
+      if (this.isGrounded) {
+        // Appliquer une force vers le bas pour descendre
+        Body.applyForce(this.body, this.body.position, {
+          x: this.direction * 0.002, // Force horizontale plus forte
+          y: 0.003, // Force vers le bas pour descendre
+        });
+        
+        // Si le personnage est trop lent, l'aider à descendre
+        if (Math.abs(velocity.x) < 0.3) {
+          Body.setVelocity(this.body, {
+            x: this.direction * 0.5, // Vitesse minimale pour descendre
+            y: velocity.y,
+          });
+        }
+      }
+    } else if (slopeType === "uphill") {
+      // Pente montante - ralentir légèrement mais pas trop
+      if (this.isGrounded) {
+        Body.setVelocity(this.body, {
+          x: velocity.x * 0.95, // Ralentir très légèrement en montée
+          y: velocity.y,
+        });
+      }
     }
   }
 
@@ -760,8 +834,8 @@ export class Character {
         this.gameState.gameSettings.timeScale) ||
       1.0;
 
-    // Assistance plus forte que avant
-    const assistMultiplier = Math.max(0.4, 1.0 / Math.sqrt(timeScale));
+    // Assistance plus forte pour les pentes
+    const assistMultiplier = Math.max(0.6, 1.0 / Math.sqrt(timeScale));
 
     // ASSISTANCE AMÉLIORÉE POUR LES PENTES - plus généreuse
     if (Math.abs(this.direction) > 0) {

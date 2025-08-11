@@ -228,7 +228,9 @@ export class Character {
     const distance = Math.sqrt(
       Math.pow(myPos.x - otherPos.x, 2) + Math.pow(myPos.y - otherPos.y, 2)
     );
-    const minDistance = this.radius * 2.2; // Distance minimale souhaitée
+    
+    // Distance minimale adaptée selon l'appareil
+    const minDistance = this.isMobile ? this.radius * 1.8 : this.radius * 2.2;
 
     // Si les personnages sont trop proches, les séparer
     if (distance < minDistance) {
@@ -237,7 +239,9 @@ export class Character {
         y: (myPos.y - otherPos.y) / distance,
       };
 
-      const pushForce = (minDistance - distance) * 0.001; // Force proportionnelle
+      // Force adaptée selon l'appareil
+      const baseForce = this.isMobile ? 0.0005 : 0.001;
+      const pushForce = (minDistance - distance) * baseForce;
 
       // Adapter les forces à la vitesse du jeu
       const timeScale =
@@ -247,10 +251,13 @@ export class Character {
         1.0;
       const forceMultiplier = Math.min(1.0, 1.0 / timeScale);
 
+      // SUR MOBILE : Forces réduites pour éviter les comportements erratiques
+      const finalMultiplier = this.isMobile ? forceMultiplier * 0.5 : forceMultiplier;
+
       // Appliquer la force de séparation
       Body.applyForce(this.body, this.body.position, {
-        x: pushDirection.x * pushForce * forceMultiplier,
-        y: pushDirection.y * pushForce * forceMultiplier,
+        x: pushDirection.x * pushForce * finalMultiplier,
+        y: pushDirection.y * pushForce * finalMultiplier,
       });
     }
   }
@@ -518,6 +525,12 @@ export class Character {
     const velocity = this.body.velocity;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
 
+    // VERSION MOBILE-OPTIMISÉE : Plus simple et plus efficace
+    if (this.isMobile) {
+      this.preventLineTraversalMobile();
+      return;
+    }
+
     // Vérifier les 4 directions principales
     const directions = [
       { x: 1, y: 0 }, // Droite
@@ -580,6 +593,70 @@ export class Character {
         // FORCER le changement de direction si bloqué
         if (Math.abs(velocity.x) < 0.1 && Math.abs(velocity.y) < 0.1) {
           this.targetDirection *= -1; // Inverser la direction
+        }
+      }
+    }
+  }
+
+  // NOUVELLE FONCTION : Version mobile-optimisée
+  preventLineTraversalMobile() {
+    const position = this.body.position;
+    const velocity = this.body.velocity;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // SUR MOBILE : Vérification PLUS SIMPLE et PLUS EFFICACE
+    const directions = [
+      { x: 1, y: 0 }, // Droite
+      { x: -1, y: 0 }, // Gauche
+    ]; // SEULEMENT horizontal sur mobile pour les performances
+
+    for (const dir of directions) {
+      const checkDistance = bodyRadius * 2.0; // Distance plus longue sur mobile
+      const checkPoint = {
+        x: position.x + dir.x * checkDistance,
+        y: position.y + dir.y * checkDistance,
+      };
+
+      const hit = this.physics.raycast(
+        { x: position.x, y: position.y },
+        checkPoint,
+        (body) =>
+          body !== this.body && body.label === "drawn-trail" && body.isStatic
+      );
+
+      if (hit) {
+        // SUR MOBILE : Solution PLUS DOUCE
+        const distanceToLine = Math.sqrt(
+          Math.pow(hit.point.x - position.x, 2) +
+            Math.pow(hit.point.y - position.y, 2)
+        );
+
+        // Repositionnement PLUS DOUX sur mobile
+        if (distanceToLine < bodyRadius * 1.5) {
+          const pushDistance = bodyRadius * 2.0 - distanceToLine;
+          const pushDirection = {
+            x: (position.x - hit.point.x) / distanceToLine,
+            y: (position.y - hit.point.y) / distanceToLine,
+          };
+
+          // Repositionner PLUS DOUCEMENT
+          Body.setPosition(this.body, {
+            x: position.x + pushDirection.x * pushDistance * 0.5, // Force réduite
+            y: position.y + pushDirection.y * pushDistance * 0.5,
+          });
+        }
+
+        // BLOQUER le mouvement PLUS DOUCEMENT sur mobile
+        if (dir.x !== 0 && Math.sign(velocity.x) === dir.x) {
+          Body.setVelocity(this.body, {
+            x: velocity.x * 0.1, // Ralentissement au lieu d'arrêt brutal
+            y: velocity.y,
+          });
+        }
+
+        // Changement de direction PLUS RAPIDE sur mobile
+        if (Math.abs(velocity.x) < 0.2) {
+          this.targetDirection *= -1;
         }
       }
     }

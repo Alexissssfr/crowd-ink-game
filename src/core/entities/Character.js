@@ -12,6 +12,9 @@ export class Character {
     this.id = this.generateId();
     this.gameState = options.gameState; // Référence vers GameState
 
+    // Détection mobile pour ajuster la collision
+    this.isMobile = this.detectMobileDevice();
+
     // Configuration
     this.radius = 6;
     this.maxSpeed = 3.2;
@@ -347,6 +350,105 @@ export class Character {
     }
   }
 
+  preventTrailPenetrationHighSpeed() {
+    const position = this.body.position;
+    const velocity = this.body.velocity;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // À haute vitesse, on utilise un seuil plus bas pour détecter plus tôt
+    const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+    if (speed < 0.3) return; // Seuil plus bas pour détection précoce
+
+    // Distance de vérification PLUS LONGUE à haute vitesse pour anticiper
+    const lookAhead = Math.min(speed * 2.0, 15); // Distance plus longue
+    const futurePos = {
+      x: position.x + (velocity.x / speed) * lookAhead,
+      y: position.y + (velocity.y / speed) * lookAhead,
+    };
+
+    // Raycast avec distance plus longue
+    const hit = this.physics.raycast(
+      position,
+      futurePos,
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (hit) {
+      // RÉACTION PLUS DOUCE à haute vitesse pour éviter les arrêts brutaux
+      console.log(
+        `Personnage ${this.id} - Collision haute vitesse détectée, ralentissement`
+      );
+
+      // RALENTISSEMENT PROGRESSIF au lieu d'arrêt brutal
+      Body.setVelocity(this.body, {
+        x: velocity.x * 0.3, // Ralentissement progressif
+        y: velocity.y * 0.7, // Réduction verticale modérée
+      });
+    }
+  }
+
+  detectMobileDevice() {
+    // Détection simple des appareils mobiles
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) ||
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0
+    );
+  }
+
+  // Amélioration spécifique pour mobile
+  preventTrailPenetrationMobile() {
+    const position = this.body.position;
+    const velocity = this.body.velocity;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Sur mobile, on vérifie PLUS SOUVENT et PLUS TÔT
+    const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+    if (speed < 0.2) return; // Seuil encore plus bas sur mobile
+
+    // Distance de vérification PLUS LONGUE sur mobile
+    const lookAhead = Math.min(speed * 2.5, 20); // Distance encore plus longue
+    const futurePos = {
+      x: position.x + (velocity.x / speed) * lookAhead,
+      y: position.y + (velocity.y / speed) * lookAhead,
+    };
+
+    // Vérification MULTIPLE sur mobile pour plus de précision
+    const hit1 = this.physics.raycast(
+      position,
+      futurePos,
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    // Vérification supplémentaire légèrement décalée
+    const offsetPos = {
+      x: position.x + velocity.x * 0.5,
+      y: position.y + velocity.y * 0.5,
+    };
+    const hit2 = this.physics.raycast(
+      offsetPos,
+      futurePos,
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (hit1 || hit2) {
+      console.log(
+        `📱 Personnage ${this.id} - Collision mobile détectée, arrêt renforcé`
+      );
+
+      // ARRÊT PLUS FORT sur mobile pour compenser les problèmes de précision
+      Body.setVelocity(this.body, {
+        x: velocity.x * 0.05, // Arrêt presque complet
+        y: velocity.y * 0.3, // Réduction verticale importante
+      });
+    }
+  }
+
   updateTargetDirection() {
     // LOGIQUE ULTRA-SIMPLE : changement de direction SEULEMENT en cas de blocage réel
 
@@ -528,9 +630,19 @@ export class Character {
       });
     }
 
-    // Système anti-traversée SEULEMENT à vitesse normale/lente
-    if (timeScale <= 1.5) {
-      this.preventTrailPenetration();
+    // Système anti-traversée TOUJOURS actif pour éviter les traversées
+    // Sur mobile, on utilise une détection renforcée
+    if (this.isMobile) {
+      // Sur mobile, on vérifie TOUJOURS, peu importe la vitesse
+      this.preventTrailPenetrationMobile();
+    } else {
+      // Sur desktop, logique normale
+      if (timeScale <= 2.0) {
+        this.preventTrailPenetration();
+      } else {
+        // À très haute vitesse, protection réduite mais toujours présente
+        this.preventTrailPenetrationHighSpeed();
+      }
     }
 
     // checkGroundAhead() DÉSACTIVÉ - causait des changements de direction inappropriés

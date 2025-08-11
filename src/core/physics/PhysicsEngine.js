@@ -85,12 +85,20 @@ export class PhysicsEngine {
   createTrailFromPoints(points, options = {}) {
     if (points.length < 2) return null;
 
+    // Détection mobile pour ajuster les paramètres
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) ||
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0;
+
     const {
-      thickness = 30, // Épaisseur ENCORE PLUS GROSSE pour solidité absolue
-      friction = 1.0, // Friction maximale
-      frictionStatic = 2.0, // Anti-glissement maximum
+      thickness = isMobile ? 35 : 30, // Plus épais sur mobile
+      friction = isMobile ? 1.5 : 1.0, // Plus de friction sur mobile
+      frictionStatic = isMobile ? 3.0 : 2.0, // Anti-glissement renforcé sur mobile
       restitution = 0.0, // Zéro rebond
-      density = 2000.0, // ULTRA DENSE pour mur infranchissable
+      density = isMobile ? 3000.0 : 2000.0, // Plus dense sur mobile
     } = options;
 
     // GARDER LA FORME EXACTE - pas de simplification
@@ -114,7 +122,8 @@ export class PhysicsEngine {
       const centerY = (p1.y + p2.y) / 2;
 
       // SEGMENTS AVEC CHEVAUCHEMENT POUR SOLIDITÉ ABSOLUE
-      const extendedLength = length + thickness * 0.3; // Chevauchement de 30%
+      const overlapFactor = isMobile ? 0.5 : 0.3; // Plus de chevauchement sur mobile
+      const extendedLength = length + thickness * overlapFactor;
 
       const segment = Bodies.rectangle(
         centerX,

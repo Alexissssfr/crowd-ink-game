@@ -16,7 +16,7 @@ const {
 export class PhysicsEngine {
   constructor() {
     this.engine = Engine.create({
-      gravity: { x: 0, y: 0.8 }, // Gravité légèrement réduite
+      gravity: { x: 0, y: 1.2 }, // Gravité plus forte pour des chutes plus réalistes
       timing: { timeScale: 1 },
     });
 

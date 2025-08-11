@@ -17,8 +17,8 @@ export class Character {
 
     // Configuration
     this.radius = 6;
-    this.maxSpeed = 3.2;
-    this.moveForce = 0.002;
+    this.maxSpeed = 2.5; // Vitesse réduite pour plus de réalisme
+    this.moveForce = 0.0015; // Force de mouvement réduite
     this.jumpForce = 0.015;
     this.autoJump = options.autoJump ?? true;
 
@@ -355,9 +355,7 @@ export class Character {
     );
 
     if (hit) {
-      console.log(
-        `Personnage ${this.id} - Collision détectée, ralentissement`
-      );
+      console.log(`Personnage ${this.id} - Collision détectée, ralentissement`);
 
       // RALENTISSEMENT simple au lieu d'arrêt brutal
       Body.setVelocity(this.body, {
@@ -411,27 +409,27 @@ export class Character {
     const velocity = this.body.velocity;
 
     if (slopeType === "downhill") {
-      // Pente descendante - encourager la descente
+      // Pente descendante - encourager légèrement la descente
       if (this.isGrounded) {
-        // Appliquer une force vers le bas pour descendre
+        // Appliquer une force très légère pour descendre
         Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.002, // Force horizontale plus forte
-          y: 0.003, // Force vers le bas pour descendre
+          x: this.direction * 0.001, // Force horizontale très légère
+          y: 0.001, // Force vers le bas très légère
         });
-        
-        // Si le personnage est trop lent, l'aider à descendre
-        if (Math.abs(velocity.x) < 0.3) {
+
+        // Si le personnage est vraiment bloqué, l'aider un peu
+        if (Math.abs(velocity.x) < 0.1) {
           Body.setVelocity(this.body, {
-            x: this.direction * 0.5, // Vitesse minimale pour descendre
+            x: this.direction * 0.2, // Vitesse minimale très faible
             y: velocity.y,
           });
         }
       }
     } else if (slopeType === "uphill") {
-      // Pente montante - ralentir légèrement mais pas trop
+      // Pente montante - ralentir légèrement
       if (this.isGrounded) {
         Body.setVelocity(this.body, {
-          x: velocity.x * 0.95, // Ralentir très légèrement en montée
+          x: velocity.x * 0.98, // Ralentir très légèrement en montée
           y: velocity.y,
         });
       }
@@ -536,8 +534,6 @@ export class Character {
       });
     }
   }
-
-
 
   updateTargetDirection() {
     // LOGIQUE ULTRA-SIMPLE : changement de direction SEULEMENT en cas de blocage réel
@@ -728,14 +724,14 @@ export class Character {
 
     // checkGroundAhead() DÉSACTIVÉ - causait des changements de direction inappropriés
 
-    // Auto-saut DÉSACTIVÉ à haute vitesse pour éviter le chaos
+    // Auto-saut TRÈS RESTRICTIF - seulement pour de très petits obstacles
     if (
       this.autoJump &&
       this.isGrounded &&
       timeScale <= 1.0 && // SEULEMENT à vitesse normale
       Math.abs(currentVelocity.x) < 0.1 &&
-      this.stuckTimer > 60 &&
-      this.canJumpOverObstacle(this.direction)
+      this.stuckTimer > 120 && // Délai plus long
+      this.shouldJump() // Utiliser la nouvelle logique restrictive
     ) {
       this.jump();
     }
@@ -760,22 +756,19 @@ export class Character {
   }
 
   shouldJump() {
-    // Conditions pour déclencher un saut automatique
+    // Conditions TRÈS RESTRICTIVES pour déclencher un saut automatique
     const velocity = this.body.velocity;
 
-    // Si quasi immobile et qu'il y a un petit obstacle devant
-    if (Math.abs(velocity.x) < 0.3 && this.hasSmallObstacleAhead()) {
-      return true;
+    // SEULEMENT si vraiment bloqué par un petit obstacle (pas de saut automatique sur les pentes)
+    if (Math.abs(velocity.x) < 0.2 && this.hasSmallObstacleAhead()) {
+      // Vérifier que c'est vraiment un petit obstacle, pas une pente
+      const slopeType = this.detectSlope();
+      if (slopeType === "flat") {
+        return true;
+      }
     }
 
-    // Si on détecte un mur franchissable
-    if (
-      this.hasWallAhead(this.direction) &&
-      this.canJumpOverObstacle(this.direction)
-    ) {
-      return true;
-    }
-
+    // PAS de saut automatique sur les murs - laisser la gravité faire son travail
     return false;
   }
 
@@ -808,12 +801,12 @@ export class Character {
         this.gameState.gameSettings.timeScale) ||
       1.0;
 
-    // Réduire drastiquement la force de saut à haute vitesse
-    const jumpMultiplier = Math.max(0.1, 1.0 / Math.sqrt(timeScale));
+    // SAUT TRÈS FAIBLE - juste pour franchir de petits obstacles
+    const jumpMultiplier = Math.max(0.05, 1.0 / Math.sqrt(timeScale));
 
     const jumpVector = {
-      x: this.jumpForce * 0.3 * this.direction * jumpMultiplier,
-      y: -this.jumpForce * jumpMultiplier,
+      x: this.jumpForce * 0.1 * this.direction * jumpMultiplier, // Force horizontale très faible
+      y: -this.jumpForce * 0.3 * jumpMultiplier, // Force verticale réduite
     };
 
     Body.applyForce(this.body, this.body.position, jumpVector);
@@ -834,8 +827,8 @@ export class Character {
         this.gameState.gameSettings.timeScale) ||
       1.0;
 
-    // Assistance plus forte pour les pentes
-    const assistMultiplier = Math.max(0.6, 1.0 / Math.sqrt(timeScale));
+    // Assistance subtile pour les pentes
+    const assistMultiplier = Math.max(0.3, 1.0 / Math.sqrt(timeScale));
 
     // ASSISTANCE AMÉLIORÉE POUR LES PENTES - plus généreuse
     if (Math.abs(this.direction) > 0) {

@@ -93,6 +93,9 @@ export class Character {
     this.handleMovement(deltaTime);
     this.checkStuckState();
 
+    // Anti-rebond pour éviter les traversées
+    this.preventBouncing();
+
     this.checkBounds();
 
     // Vérification de la zone objectif
@@ -284,27 +287,43 @@ export class Character {
         this.gameState.gameSettings.timeScale) ||
       1.0;
 
-    // Seulement actif à vitesse élevée
-    if (timeScale <= 0.6) return;
-
     const velocity = this.body.velocity;
 
-    // Détecter les sautillements verticaux UNIQUEMENT (pas de mouvement normal)
-    if (Math.abs(velocity.y) > 0.8 && !this.isGrounded) {
-      // Écraser SEULEMENT le mouvement vertical excessif
+    // ANTI-REBOND RENFORCÉ pour éviter les traversées
+    // Détecter les sautillements verticaux
+    if (Math.abs(velocity.y) > 0.5 && !this.isGrounded) {
+      // Écraser le mouvement vertical excessif
       Body.setVelocity(this.body, {
         x: velocity.x, // GARDER le mouvement horizontal
-        y: velocity.y * 0.1, // ÉCRASER fort le vertical pour éviter traversée
+        y: velocity.y * 0.05, // ÉCRASER fort le vertical
+      });
+    }
+
+    // Détecter les rebonds horizontaux (contre les murs)
+    if (Math.abs(velocity.x) > 1.5) {
+      Body.setVelocity(this.body, {
+        x: velocity.x * 0.2, // Réduire drastiquement les rebonds horizontaux
+        y: velocity.y,
       });
     }
 
     // Détecter les explosions totales (vitesses anormales)
-    if (Math.abs(velocity.x) > 3.0 || Math.abs(velocity.y) > 3.0) {
-      // Écraser complètement seulement en cas d'explosion
+    if (Math.abs(velocity.x) > 2.5 || Math.abs(velocity.y) > 2.5) {
+      // Écraser complètement en cas d'explosion
       Body.setVelocity(this.body, {
-        x: velocity.x * 0.4,
-        y: velocity.y * 0.2,
+        x: velocity.x * 0.1,
+        y: velocity.y * 0.1,
       });
+    }
+
+    // Sur mobile, anti-rebond encore plus agressif
+    if (this.isMobile) {
+      if (Math.abs(velocity.x) > 0.8 || Math.abs(velocity.y) > 0.8) {
+        Body.setVelocity(this.body, {
+          x: velocity.x * 0.3,
+          y: velocity.y * 0.3,
+        });
+      }
     }
   }
 
@@ -446,6 +465,95 @@ export class Character {
         x: velocity.x * 0.05, // Arrêt presque complet
         y: velocity.y * 0.3, // Réduction verticale importante
       });
+    }
+  }
+
+  // NOUVELLE FONCTION : Détection renforcée pour les murs verticaux
+  preventWallPenetration() {
+    const position = this.body.position;
+    const velocity = this.body.velocity;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Vérification HORIZONTALE (murs verticaux)
+    const horizontalSpeed = Math.abs(velocity.x);
+    if (horizontalSpeed > 0.3) {
+      const lookAheadX = Math.min(horizontalSpeed * 2.0, 15);
+      const futurePosX = {
+        x: position.x + (velocity.x > 0 ? lookAheadX : -lookAheadX),
+        y: position.y,
+      };
+
+      const hitHorizontal = this.physics.raycast(
+        position,
+        futurePosX,
+        (body) =>
+          body !== this.body && body.label === "drawn-trail" && body.isStatic
+      );
+
+      if (hitHorizontal) {
+        console.log(
+          `🧱 Personnage ${this.id} - Mur vertical détecté, arrêt horizontal`
+        );
+
+        // ARRÊT COMPLET du mouvement horizontal
+        Body.setVelocity(this.body, {
+          x: 0, // Arrêt total horizontal
+          y: velocity.y * 0.8, // Garder un peu de mouvement vertical
+        });
+
+        // Repositionner légèrement pour éviter la traversée
+        const safeDistance = bodyRadius + 2;
+        const newX =
+          velocity.x > 0
+            ? hitHorizontal.point.x - safeDistance
+            : hitHorizontal.point.x + safeDistance;
+
+        Body.setPosition(this.body, {
+          x: newX,
+          y: position.y,
+        });
+      }
+    }
+
+    // Vérification VERTICALE (plafonds/sols)
+    const verticalSpeed = Math.abs(velocity.y);
+    if (verticalSpeed > 0.3) {
+      const lookAheadY = Math.min(verticalSpeed * 2.0, 15);
+      const futurePosY = {
+        x: position.x,
+        y: position.y + (velocity.y > 0 ? lookAheadY : -lookAheadY),
+      };
+
+      const hitVertical = this.physics.raycast(
+        position,
+        futurePosY,
+        (body) =>
+          body !== this.body && body.label === "drawn-trail" && body.isStatic
+      );
+
+      if (hitVertical) {
+        console.log(
+          `🛡️ Personnage ${this.id} - Plafond/sol détecté, arrêt vertical`
+        );
+
+        // ARRÊT COMPLET du mouvement vertical
+        Body.setVelocity(this.body, {
+          x: velocity.x * 0.8, // Garder un peu de mouvement horizontal
+          y: 0, // Arrêt total vertical
+        });
+
+        // Repositionner légèrement pour éviter la traversée
+        const safeDistance = bodyRadius + 2;
+        const newY =
+          velocity.y > 0
+            ? hitVertical.point.y - safeDistance
+            : hitVertical.point.y + safeDistance;
+
+        Body.setPosition(this.body, {
+          x: position.x,
+          y: newY,
+        });
+      }
     }
   }
 
@@ -631,6 +739,9 @@ export class Character {
     }
 
     // Système anti-traversée TOUJOURS actif pour éviter les traversées
+    // Détection renforcée pour les murs verticaux (boîtes)
+    this.preventWallPenetration();
+
     // Sur mobile, on utilise une détection renforcée
     if (this.isMobile) {
       // Sur mobile, on vérifie TOUJOURS, peu importe la vitesse

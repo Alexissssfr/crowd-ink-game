@@ -154,13 +154,14 @@ export class PhysicsEngine {
     for (let i = 1; i < points.length - 1; i++) {
       const point = points[i];
 
-      // Cercle de renforcement à chaque jonction
-      const reinforcement = Bodies.circle(point.x, point.y, thickness * 0.7, {
+      // Cercle de renforcement PLUS GROS à chaque jonction
+      const reinforcementSize = isMobile ? thickness * 0.9 : thickness * 0.7;
+      const reinforcement = Bodies.circle(point.x, point.y, reinforcementSize, {
         isStatic: true,
-        friction,
-        frictionStatic,
+        friction: isMobile ? 2.0 : friction,
+        frictionStatic: isMobile ? 4.0 : frictionStatic,
         restitution,
-        density: density * 3, // TRÈS DENSE
+        density: isMobile ? density * 5 : density * 3, // ENCORE PLUS DENSE sur mobile
         label: "drawn-trail",
         render: {
           fillStyle: "#42a5f5",
@@ -173,6 +174,51 @@ export class PhysicsEngine {
       trailBodies.push(reinforcement);
     }
 
+    // AJOUTER DES RENFORCEMENTS AUX COINS (intersections de traits)
+    if (points.length > 2) {
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        
+        // Vérifier s'il y a d'autres traits à proximité (intersections)
+        for (let j = i + 2; j < points.length - 1; j++) {
+          const p3 = points[j];
+          const p4 = points[j + 1];
+          
+          // Distance entre les segments
+          const distance = this.distanceBetweenSegments(p1, p2, p3, p4);
+          
+          if (distance < thickness * 2) {
+            // Ajouter un renforcement à l'intersection
+            const intersectionPoint = this.findIntersection(p1, p2, p3, p4);
+            if (intersectionPoint) {
+              const cornerReinforcement = Bodies.circle(
+                intersectionPoint.x, 
+                intersectionPoint.y, 
+                thickness * 1.2, // Très gros renforcement aux intersections
+                {
+                  isStatic: true,
+                  friction: isMobile ? 3.0 : 2.0,
+                  frictionStatic: isMobile ? 5.0 : 3.0,
+                  restitution: 0,
+                  density: isMobile ? density * 8 : density * 5, // ULTRA DENSE
+                  label: "drawn-trail",
+                  render: {
+                    fillStyle: "#1976d2", // Couleur différente pour les intersections
+                    strokeStyle: "#0d47a1",
+                    lineWidth: 2,
+                  },
+                }
+              );
+              
+              World.add(this.world, cornerReinforcement);
+              trailBodies.push(cornerReinforcement);
+            }
+          }
+        }
+      }
+    }
+
     if (trailBodies.length === 0) return null;
 
     const trailId = this.generateTrailId();
@@ -183,6 +229,44 @@ export class PhysicsEngine {
     });
 
     return { id: trailId, bodies: trailBodies };
+  }
+
+  /**
+   * Calcule la distance entre deux segments de ligne
+   */
+  distanceBetweenSegments(p1, p2, p3, p4) {
+    // Distance minimale entre deux segments
+    const d1 = this.pointToLineDistance(p1, p3, p4);
+    const d2 = this.pointToLineDistance(p2, p3, p4);
+    const d3 = this.pointToLineDistance(p3, p1, p2);
+    const d4 = this.pointToLineDistance(p4, p1, p2);
+    
+    return Math.min(d1, d2, d3, d4);
+  }
+
+  /**
+   * Trouve le point d'intersection entre deux segments
+   */
+  findIntersection(p1, p2, p3, p4) {
+    const x1 = p1.x, y1 = p1.y;
+    const x2 = p2.x, y2 = p2.y;
+    const x3 = p3.x, y3 = p3.y;
+    const x4 = p4.x, y4 = p4.y;
+    
+    const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (Math.abs(denom) < 0.001) return null; // Segments parallèles
+    
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+    
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return {
+        x: x1 + t * (x2 - x1),
+        y: y1 + t * (y2 - y1)
+      };
+    }
+    
+    return null;
   }
 
   /**

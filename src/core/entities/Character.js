@@ -463,76 +463,24 @@ export class Character {
     return "flat"; // Terrain plat
   }
 
-  // NOUVELLE FONCTION : Gestion des pentes
+  // SOLUTION EXTRÊME : Gestion SIMPLE des pentes
   handleSlopeMovement() {
-    const slopeType = this.detectSlope();
-    const velocity = this.body.velocity;
-    const position = this.body.position;
-
-    if (slopeType === "downhill") {
-      console.log(`Personnage ${this.id} - FORÇAGE DESCENTE RADICAL`);
-
-      // Pente descendante - FORÇAGE RADICAL
-      if (this.isGrounded) {
-        // SOLUTION RADICALE : Forcer le mouvement de descente
-        this.forceDownhillMovement();
-
-        // Appliquer une force TRÈS FORTE pour descendre
-        Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.008, // Force horizontale TRÈS forte
-          y: 0.012, // Force vers le bas TRÈS forte
-        });
-
-        // Si le personnage est bloqué, le forcer à descendre
-        if (Math.abs(velocity.x) < 0.5) {
-          Body.setVelocity(this.body, {
-            x: this.direction * 2.0, // Vitesse forcée pour descendre
-            y: 1.5, // Vitesse de descente forcée
-          });
-        }
-
-        // Forcer la descente et suivre la ligne
-        this.forceStayOnSurface();
-        this.forceFollowLine();
-      }
-    } else if (slopeType === "uphill") {
-      // Pente montante - ralentir légèrement
-      if (this.isGrounded) {
+    // SOLUTION EXTRÊME : Forcer le suivi de ligne dans TOUS les cas
+    
+    if (this.isGrounded) {
+      // FORCER le suivi de ligne dans la direction du mouvement
+      this.forceLineFollowingInDirection();
+      
+      // FORCER le repositionnement sur la ligne
+      this.forceStrictLineFollowing();
+      
+      // FORCER la vitesse dans la direction
+      const velocity = this.body.velocity;
+      if (Math.abs(velocity.x) < 0.8) {
         Body.setVelocity(this.body, {
-          x: velocity.x * 0.98, // Ralentir très légèrement en montée
-          y: velocity.y,
+          x: this.direction * 1.5, // Vitesse forcée
+          y: 0, // Pas de mouvement vertical
         });
-      }
-    } else if (slopeType === "transition") {
-      // Transition de pente - FORCER la descente sur la ligne
-      console.log(
-        `Personnage ${this.id} - Gestion transition de pente - FORÇAGE`
-      );
-      if (this.isGrounded) {
-        // Appliquer une force TRÈS FORTE pour descendre sur la nouvelle pente
-        Body.applyForce(this.body, this.body.position, {
-          x: this.direction * 0.01, // Force horizontale TRÈS forte
-          y: 0.008, // Force vers le bas TRÈS forte
-        });
-
-        // Forcer la descente et suivre la ligne
-        this.forceStayOnSurface();
-        this.forceFollowLine();
-
-        // Si le personnage est bloqué, le forcer à descendre
-        const velocity = this.body.velocity;
-        if (Math.abs(velocity.x) < 0.5) {
-          Body.setVelocity(this.body, {
-            x: this.direction * 1.5, // Vitesse forcée pour descendre
-            y: velocity.y,
-          });
-        }
-      }
-    } else if (slopeType === "flat") {
-      // Terrain plat - s'assurer qu'on reste sur la surface et suit la ligne
-      if (this.isGrounded) {
-        this.forceStayOnSurface();
-        this.forceFollowLine();
       }
     }
   }
@@ -682,7 +630,7 @@ export class Character {
     }
   }
 
-  // SOLUTION ULTIME : Forcer le personnage à suivre STRICTEMENT la ligne
+  // SOLUTION EXTRÊME : Forcer le personnage à suivre EXACTEMENT la ligne
   forceStrictLineFollowing() {
     const position = this.body.position;
     const bodyRadius = this.body.circleRadius || this.radius * 0.8;
@@ -715,6 +663,56 @@ export class Character {
         // Arrêter TOUT mouvement vertical
         Body.setVelocity(this.body, {
           x: this.body.velocity.x,
+          y: 0, // Pas de mouvement vertical
+        });
+      }
+    }
+  }
+
+  // SOLUTION EXTRÊME : Forcer le personnage à suivre la ligne dans la direction du mouvement
+  forceLineFollowingInDirection() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Chercher la ligne dans la direction du mouvement
+    const searchDistance = bodyRadius * 2;
+    const searchStart = {
+      x: position.x + this.direction * searchDistance,
+      y: position.y - bodyRadius
+    };
+    const searchEnd = {
+      x: position.x + this.direction * searchDistance,
+      y: position.y + bodyRadius
+    };
+
+    const lineHit = this.physics.raycast(
+      searchStart,
+      searchEnd,
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (lineHit) {
+      const lineY = lineHit.point.y;
+      const currentY = position.y;
+      const distanceToLine = Math.abs(lineY - currentY);
+
+      // Si on est trop loin de la ligne, forcer le rapprochement
+      if (distanceToLine > bodyRadius) {
+        console.log(`Personnage ${this.id} - FORÇAGE RAPPROCHEMENT vers ligne`);
+        
+        // Calculer la direction vers la ligne
+        const directionToLine = lineY > currentY ? 1 : -1;
+        
+        // FORCER le rapprochement avec repositionnement
+        Body.setPosition(this.body, {
+          x: position.x + this.direction * 1, // Avancer légèrement
+          y: lineY - bodyRadius - 0.5, // EXACTEMENT sur la ligne
+        });
+
+        // FORCER la vitesse dans la direction
+        Body.setVelocity(this.body, {
+          x: this.direction * 1.5, // Vitesse forcée
           y: 0, // Pas de mouvement vertical
         });
       }

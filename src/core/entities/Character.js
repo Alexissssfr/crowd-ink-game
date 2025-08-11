@@ -96,8 +96,8 @@ export class Character {
     // Gestion des pentes pour navigation naturelle
     this.handleSlopeMovement();
 
-    // Anti-rebond pour éviter les traversées
-    this.preventBouncing();
+    // SOLUTION ULTIME : Forcer le suivi strict des lignes
+    this.forceStrictLineFollowing();
 
     this.checkBounds();
 
@@ -682,6 +682,45 @@ export class Character {
     }
   }
 
+  // SOLUTION ULTIME : Forcer le personnage à suivre STRICTEMENT la ligne
+  forceStrictLineFollowing() {
+    const position = this.body.position;
+    const bodyRadius = this.body.circleRadius || this.radius * 0.8;
+
+    // Chercher la ligne EXACTEMENT sous le personnage
+    const lineHit = this.physics.raycast(
+      { x: position.x, y: position.y },
+      { x: position.x, y: position.y + 20 },
+      (body) =>
+        body !== this.body && body.label === "drawn-trail" && body.isStatic
+    );
+
+    if (lineHit) {
+      const lineY = lineHit.point.y;
+      const currentY = position.y;
+      const distanceToLine = Math.abs(lineY - currentY);
+
+      // Si on n'est pas EXACTEMENT sur la ligne, repositionner
+      if (distanceToLine > 1) {
+        console.log(
+          `Personnage ${this.id} - REPOSITIONNEMENT STRICT sur ligne`
+        );
+
+        // Repositionner EXACTEMENT sur la ligne
+        Body.setPosition(this.body, {
+          x: position.x,
+          y: lineY - bodyRadius - 0.5, // EXACTEMENT sur la ligne
+        });
+
+        // Arrêter TOUT mouvement vertical
+        Body.setVelocity(this.body, {
+          x: this.body.velocity.x,
+          y: 0, // Pas de mouvement vertical
+        });
+      }
+    }
+  }
+
   preventTrailPenetrationHighSpeed() {
     const position = this.body.position;
     const velocity = this.body.velocity;
@@ -926,47 +965,19 @@ export class Character {
     const forceMultiplier = Math.max(0.1, 1.0 / Math.sqrt(timeScale)); // Réduction progressive
     const speedMultiplier = Math.max(0.3, 1.0 / timeScale); // Limite la vitesse max
 
-    // Force horizontale adaptée
-    const adaptedMaxSpeed = this.maxSpeed * speedMultiplier;
+    // SUPPRIMÉ : Toutes les limitations qui empêchent le suivi des lignes
+    // Les personnages DOIVENT suivre strictement les lignes dessinées
+
+    // Force de base TRÈS FAIBLE pour ne pas contrarier le suivi de ligne
+    const adaptedMaxSpeed = this.maxSpeed;
     if (Math.abs(currentVelocity.x) < adaptedMaxSpeed) {
-      const force = this.moveForce * this.direction * forceMultiplier;
+      const force = this.moveForce * this.direction * 0.3; // Force TRÈS réduite
       Body.applyForce(this.body, this.body.position, { x: force, y: 0 });
     }
 
-    // Limiter DRASTIQUEMENT les vitesses à haute vitesse de jeu
-    const speedLimit = adaptedMaxSpeed * 0.8;
-    const currentVel = this.body.velocity;
-
-    if (Math.abs(currentVel.x) > speedLimit) {
-      Body.setVelocity(this.body, {
-        x: Math.sign(currentVel.x) * speedLimit,
-        y: currentVel.y,
-      });
-    }
-
-    // Limitation ULTRA STRICTE des vitesses verticales à haute vitesse
-    const verticalLimit = speedLimit * (timeScale > 1.5 ? 0.5 : 1.0);
-    if (Math.abs(currentVel.y) > verticalLimit) {
-      Body.setVelocity(this.body, {
-        x: currentVel.x,
-        y: Math.sign(currentVel.y) * verticalLimit,
-      });
-    }
-
-    // AMORTISSEMENT AGRESSIF à haute vitesse pour éviter les sautillements
-    if (timeScale > 1.2) {
-      const dampingFactor = Math.min(0.9, 1.0 - (timeScale - 1.2) * 0.3);
-      Body.setVelocity(this.body, {
-        x: currentVel.x * dampingFactor,
-        y: currentVel.y * dampingFactor,
-      });
-    }
-
-    // Système anti-traversée SIMPLE et EFFICACE
-    // Seulement la détection de base, pas de correction agressive
-    if (timeScale <= 1.5) {
-      this.preventTrailPenetration();
-    }
+    // SUPPRIMÉ : Toutes les limitations de vitesse qui empêchent le suivi
+    // SUPPRIMÉ : Tous les amortissements qui ralentissent le mouvement
+    // SUPPRIMÉ : preventTrailPenetration qui interfère avec le suivi
 
     // checkGroundAhead() DÉSACTIVÉ - causait des changements de direction inappropriés
 

@@ -8,6 +8,8 @@ export class InputManager {
     this.lastDrawPoint = null;
     this.lastClickTime = 0;
     this.doubleClickDelay = 300;
+    this.lastTapTime = 0;
+    this.doubleTapDelay = 300;
 
     // Callbacks à définir par le jeu
     this.onDrawStart = null;
@@ -170,7 +172,20 @@ export class InputManager {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       const point = this.getCanvasPointFromTouch(touch);
-      this.startDrawing(point);
+      
+      // Détection du double-tap pour effacer
+      const currentTime = Date.now();
+      if (currentTime - this.lastTapTime < this.doubleTapDelay) {
+        // Double-tap détecté - effacer
+        if (this.onErase) {
+          this.onErase(point);
+        }
+        this.lastTapTime = 0; // Reset pour éviter les triples-taps
+      } else {
+        // Premier tap - commencer à dessiner
+        this.startDrawing(point);
+        this.lastTapTime = currentTime;
+      }
     }
   }
 

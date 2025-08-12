@@ -125,11 +125,13 @@ export class Character {
         this.stuckTimer = Math.max(0, this.stuckTimer - 30);
         // Son d'atterrissage
         if (this.soundManager) {
+          console.log(`🔊 Personnage ${this.id} ATTERRIT - Son d'atterrissage joué`);
           this.soundManager.playLand();
         }
       }
     } else if (wasGrounded && this.soundManager) {
       // Vient de décoller, son de vol
+      console.log(`🔊 Personnage ${this.id} DÉCOLLE - Son de vol joué`);
       this.soundManager.playFly();
     }
   }
@@ -1059,6 +1061,7 @@ export class Character {
 
     // Son de saut
     if (this.soundManager) {
+      console.log(`🔊 Personnage ${this.id} SAUTE - Son joué`);
       this.soundManager.playJump();
     }
   }
@@ -1279,6 +1282,7 @@ export class Character {
 
     // Son quand un personnage entre dans la zone
     if (!wasInGoal && inGoal && this.soundManager) {
+      console.log(`🔊 Personnage ${this.id} ARRIVE DANS LA ZONE - Son de succès joué`);
       this.soundManager.playSuccess();
     }
 

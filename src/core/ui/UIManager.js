@@ -17,6 +17,7 @@ export class UIManager {
     this.onValidate = null;
     this.onSpeedChange = null;
     this.onChallengeSelect = null;
+    this.soundManager = null; // Sera défini par le jeu
 
     this.bindEvents();
     this.setupAnimations();
@@ -36,6 +37,7 @@ export class UIManager {
       btnReset: document.getElementById("btn-reset"),
       btnNext: document.getElementById("btn-next"),
       btnValidate: document.getElementById("btn-validate"),
+      btnSound: document.getElementById("btn-sound"),
 
       // Vitesse
       speedSlider: document.getElementById("speed-slider"),
@@ -85,6 +87,9 @@ export class UIManager {
     this.elements.btnNext?.addEventListener("click", () => this.handleNext());
     this.elements.btnValidate?.addEventListener("click", () =>
       this.handleValidate()
+    );
+    this.elements.btnSound?.addEventListener("click", () =>
+      this.handleSoundToggle()
     );
 
     // Contrôle de vitesse
@@ -528,6 +533,13 @@ export class UIManager {
 
   handleValidate() {
     if (this.onValidate) this.onValidate();
+  }
+
+  handleSoundToggle() {
+    if (this.soundManager) {
+      const isMuted = this.soundManager.toggleMute();
+      this.elements.btnSound.textContent = isMuted ? "🔇" : "🔊";
+    }
   }
 
   handleSpeedChange(speed) {

@@ -6,6 +6,7 @@ import { CharacterManager } from "./entities/CharacterManager.js";
 import { DrawingSystem } from "./drawing/DrawingSystem.js";
 import { ChallengeManager } from "./challenges/ChallengeManager.js";
 import { GameState } from "./state/GameState.js";
+import { SoundManager } from "./audio/SoundManager.js";
 import { challenges } from "../data/challenges.js";
 
 /**
@@ -28,6 +29,10 @@ export class Game {
     this.characters = new CharacterManager(this.physics, this.state);
     this.drawing = new DrawingSystem(this.physics, this.state);
     this.challengeManager = new ChallengeManager(challenges);
+    this.soundManager = new SoundManager();
+
+    // Passer le gestionnaire de sons à l'UI
+    this.ui.soundManager = this.soundManager;
 
     // Liaison des événements
     this.bindEvents();
@@ -68,21 +73,45 @@ export class Game {
 
   bindEvents() {
     // Événements de dessin (toujours actifs)
-    this.input.onDrawStart = (point) => this.drawing.startStroke(point);
+    this.input.onDrawStart = (point) => {
+      this.drawing.startStroke(point);
+      this.soundManager.play("lineDraw");
+    };
     this.input.onDrawMove = (point) => this.drawing.continueStroke(point);
-    this.input.onDrawEnd = () => this.drawing.finishStroke();
+    this.input.onDrawEnd = () => {
+      this.drawing.finishStroke();
+      this.soundManager.play("lineDraw");
+    };
     this.input.onErase = (point) => this.drawing.eraseAt(point);
 
     // Événements de validation
     this.input.onDoubleClick = () => this.validateScore();
 
     // Événements UI
-    this.ui.onStartGame = (settings) => this.startChallenge(settings);
-    this.ui.onReset = () => this.resetChallenge();
-    this.ui.onNext = () => this.nextChallenge();
-    this.ui.onValidate = () => this.validateScore();
-    this.ui.onSpeedChange = (speed) => this.setGameSpeed(speed);
-    this.ui.onChallengeSelect = (index) => this.loadChallenge(index);
+    this.ui.onStartGame = (settings) => {
+      this.soundManager.play("buttonClick");
+      this.startChallenge(settings);
+    };
+    this.ui.onReset = () => {
+      this.soundManager.play("buttonClick");
+      this.resetChallenge();
+    };
+    this.ui.onNext = () => {
+      this.soundManager.play("buttonClick");
+      this.nextChallenge();
+    };
+    this.ui.onValidate = () => {
+      this.soundManager.play("buttonClick");
+      this.validateScore();
+    };
+    this.ui.onSpeedChange = (speed) => {
+      this.soundManager.play("buttonClick");
+      this.setGameSpeed(speed);
+    };
+    this.ui.onChallengeSelect = (index) => {
+      this.soundManager.play("buttonClick");
+      this.loadChallenge(index);
+    };
 
     // Populer la liste des challenges dans l'UI
     this.ui.populateChallengeList(this.challengeManager.getAllChallenges());

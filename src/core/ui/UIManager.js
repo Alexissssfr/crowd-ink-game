@@ -549,7 +549,7 @@ export class UIManager {
   handleTestSound() {
     if (this.soundManager) {
       console.log("🎵 Test audio depuis le bouton");
-      this.soundManager.playJump();
+      this.soundManager.testAudio();
     }
   }
 

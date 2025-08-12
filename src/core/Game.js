@@ -80,10 +80,12 @@ export class Game {
     // Événements de dessin (toujours actifs)
     this.input.onDrawStart = (point) => {
       this.drawing.startStroke(point);
+      this.soundManager.playDraw();
     };
     this.input.onDrawMove = (point) => this.drawing.continueStroke(point);
     this.input.onDrawEnd = () => {
       this.drawing.finishStroke();
+      this.soundManager.playDraw();
     };
     this.input.onErase = (point) => this.drawing.eraseAt(point);
 

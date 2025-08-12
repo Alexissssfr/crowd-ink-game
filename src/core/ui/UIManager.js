@@ -38,6 +38,7 @@ export class UIManager {
       btnNext: document.getElementById("btn-next"),
       btnValidate: document.getElementById("btn-validate"),
       btnSound: document.getElementById("btn-sound"),
+      btnTestSound: document.getElementById("btn-test-sound"),
 
       // Vitesse
       speedSlider: document.getElementById("speed-slider"),
@@ -90,6 +91,9 @@ export class UIManager {
     );
     this.elements.btnSound?.addEventListener("click", () =>
       this.handleSoundToggle()
+    );
+    this.elements.btnTestSound?.addEventListener("click", () =>
+      this.handleTestSound()
     );
 
     // Contrôle de vitesse
@@ -539,6 +543,13 @@ export class UIManager {
     if (this.soundManager) {
       const isMuted = this.soundManager.toggleMute();
       this.elements.btnSound.textContent = isMuted ? "🔇" : "🔊";
+    }
+  }
+
+  handleTestSound() {
+    if (this.soundManager) {
+      console.log("🎵 Test audio depuis le bouton");
+      this.soundManager.playJump();
     }
   }
 

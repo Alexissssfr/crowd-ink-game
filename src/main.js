@@ -56,6 +56,16 @@ class GameApp {
       this.game.requestValidation();
     });
 
+    // Ajouter un bouton Suivant
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn btn-primary';
+    nextBtn.innerHTML = '<span>➡️</span> Suivant';
+    nextBtn.addEventListener('click', () => {
+      this.soundManager.play("buttonClick");
+      this.game.nextLevel();
+    });
+    hud.resetBtn.parentNode.insertBefore(nextBtn, hud.resetBtn.nextSibling);
+
     // Slider de vitesse
     hud.speedSlider.addEventListener("input", (e) => {
       const speed = parseFloat(e.target.value);

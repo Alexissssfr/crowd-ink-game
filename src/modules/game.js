@@ -262,7 +262,11 @@ export class Game {
         { x, y },
         goal,
         level.walkDirection,
-        { minX: 0, maxX: this.width }
+        { 
+          minX: 0, 
+          maxX: this.width,
+          soundManager: this.soundManager // Passer le gestionnaire de sons
+        }
       );
       this.characters.push(ch);
     }

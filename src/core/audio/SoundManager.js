@@ -6,7 +6,18 @@ export class SoundManager {
     this.sounds = {};
     this.isMuted = false;
     this.volume = 0.3;
-    this.initSounds();
+    this.audioContext = null;
+    this.initAudioContext();
+  }
+
+  initAudioContext() {
+    // Initialiser l'audio context seulement après une interaction utilisateur
+    document.addEventListener('click', () => {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.initSounds();
+      }
+    }, { once: true });
   }
 
   initSounds() {
@@ -22,12 +33,12 @@ export class SoundManager {
   }
 
   createSound(name, audioBuffer) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    this.sounds[name] = { audioContext, audioBuffer };
+    if (!this.audioContext) return;
+    this.sounds[name] = { audioContext: this.audioContext, audioBuffer };
   }
 
   play(soundName) {
-    if (this.isMuted || !this.sounds[soundName]) return;
+    if (this.isMuted || !this.sounds[soundName] || !this.audioContext) return;
 
     const { audioContext, audioBuffer } = this.sounds[soundName];
     
@@ -47,8 +58,8 @@ export class SoundManager {
 
   // Génération de sons avec l'API Web Audio
   generateMoveSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 4410, 44100); // 0.1 seconde
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 4410, 44100); // 0.1 seconde
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -59,8 +70,8 @@ export class SoundManager {
   }
 
   generateJumpSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 4410, 44100);
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 4410, 44100);
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -72,8 +83,8 @@ export class SoundManager {
   }
 
   generateLandSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 4410, 44100);
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 4410, 44100);
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -85,8 +96,8 @@ export class SoundManager {
   }
 
   generateDrawSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 2205, 44100); // 0.05 seconde
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 2205, 44100); // 0.05 seconde
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -97,8 +108,8 @@ export class SoundManager {
   }
 
   generateGoalSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 8820, 44100); // 0.2 seconde
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 8820, 44100); // 0.2 seconde
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -110,8 +121,8 @@ export class SoundManager {
   }
 
   generateClickSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 2205, 44100);
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 2205, 44100);
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -122,8 +133,8 @@ export class SoundManager {
   }
 
   generateSuccessSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 13230, 44100); // 0.3 seconde
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 13230, 44100); // 0.3 seconde
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {
@@ -135,8 +146,8 @@ export class SoundManager {
   }
 
   generateErrorSound() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioContext.createBuffer(1, 8820, 44100);
+    if (!this.audioContext) return null;
+    const buffer = this.audioContext.createBuffer(1, 8820, 44100);
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < buffer.length; i++) {

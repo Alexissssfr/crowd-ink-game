@@ -145,6 +145,9 @@ body {
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
+  min-width: fit-content;
+  height: 44px;
 }
 
 .btn::before {

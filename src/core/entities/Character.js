@@ -123,7 +123,14 @@ export class Character {
       if (!wasGrounded) {
         // Vient d'atterrir, réduire le timer de blocage
         this.stuckTimer = Math.max(0, this.stuckTimer - 30);
+        // Son d'atterrissage
+        if (this.soundManager) {
+          this.soundManager.playLand();
+        }
       }
+    } else if (wasGrounded && this.soundManager) {
+      // Vient de décoller, son de vol
+      this.soundManager.playFly();
     }
   }
 
@@ -1052,7 +1059,7 @@ export class Character {
 
     // Son de saut
     if (this.soundManager) {
-      this.soundManager.play("characterJump");
+      this.soundManager.playJump();
     }
   }
 
@@ -1259,6 +1266,7 @@ export class Character {
     const position = this.body.position;
     const goal = this.goal;
 
+    const wasInGoal = this.isInGoal;
     const inGoal =
       position.x >= goal.x &&
       position.x <= goal.x + goal.w &&
@@ -1268,6 +1276,11 @@ export class Character {
     // SUPPRIMÉ : Toute attraction vers la zone verte
     // La zone verte n'a AUCUN effet magnétique
     // C'est au joueur de dessiner des traits bleus pour enfermer les personnages
+
+    // Son quand un personnage entre dans la zone
+    if (!wasInGoal && inGoal && this.soundManager) {
+      this.soundManager.playSuccess();
+    }
 
     this.isInGoal = inGoal;
   }

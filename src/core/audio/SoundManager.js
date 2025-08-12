@@ -5,166 +5,76 @@ export class SoundManager {
   constructor() {
     this.sounds = {};
     this.isMuted = false;
-    this.volume = 0.3;
-    this.audioContext = null;
-    this.initAudioContext();
-  }
-
-  initAudioContext() {
-    // Initialiser l'audio context seulement après une interaction utilisateur
-    document.addEventListener('click', () => {
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.initSounds();
-      }
-    }, { once: true });
+    this.volume = 0.7;
+    
+    this.initSounds();
   }
 
   initSounds() {
-    // Sons de base (utilisant l'API Web Audio pour des sons générés)
-    this.createSound('characterMove', this.generateMoveSound());
-    this.createSound('characterJump', this.generateJumpSound());
-    this.createSound('characterLand', this.generateLandSound());
-    this.createSound('lineDraw', this.generateDrawSound());
-    this.createSound('goalReach', this.generateGoalSound());
-    this.createSound('buttonClick', this.generateClickSound());
-    this.createSound('success', this.generateSuccessSound());
-    this.createSound('error', this.generateErrorSound());
+    // Sons pour les personnages
+    this.sounds.jump = this.createSound('jump', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+    this.sounds.fly = this.createSound('fly', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+    this.sounds.land = this.createSound('land', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+    this.sounds.success = this.createSound('success', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+    this.sounds.countdown = this.createSound('countdown', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+    this.sounds.gameOver = this.createSound('gameOver', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
   }
 
-  createSound(name, audioBuffer) {
-    if (!this.audioContext) return;
-    this.sounds[name] = { audioContext: this.audioContext, audioBuffer };
+  createSound(name, src) {
+    const audio = new Audio();
+    audio.src = src;
+    audio.volume = this.volume;
+    audio.preload = 'auto';
+    return audio;
   }
 
   play(soundName) {
-    if (this.isMuted || !this.sounds[soundName] || !this.audioContext) return;
-
-    const { audioContext, audioBuffer } = this.sounds[soundName];
+    if (this.isMuted || !this.sounds[soundName]) return;
     
-    // Créer un nouveau buffer source pour chaque lecture
-    const source = audioContext.createBufferSource();
-    const gainNode = audioContext.createGain();
-    
-    source.buffer = audioBuffer;
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Appliquer le volume
-    gainNode.gain.value = this.volume;
-    
-    source.start(0);
-  }
-
-  // Génération de sons avec l'API Web Audio
-  generateMoveSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 4410, 44100); // 0.1 seconde
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      data[i] = Math.random() * 0.1 * Math.exp(-i / 1000);
+    try {
+      // Clone l'audio pour permettre plusieurs sons simultanés
+      const sound = this.sounds[soundName].cloneNode();
+      sound.volume = this.volume;
+      sound.play().catch(e => console.log('Erreur audio:', e));
+    } catch (e) {
+      console.log('Erreur lors de la lecture audio:', e);
     }
-    
-    return buffer;
   }
 
-  generateJumpSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 4410, 44100);
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      const frequency = 200 + (i / 44.1); // Glissando ascendant
-      data[i] = Math.sin(2 * Math.PI * frequency * i / 44100) * 0.2 * Math.exp(-i / 2000);
-    }
-    
-    return buffer;
+  playJump() {
+    this.play('jump');
   }
 
-  generateLandSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 4410, 44100);
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      const frequency = 150 - (i / 88.2); // Glissando descendant
-      data[i] = Math.sin(2 * Math.PI * frequency * i / 44100) * 0.15 * Math.exp(-i / 1500);
-    }
-    
-    return buffer;
+  playFly() {
+    this.play('fly');
   }
 
-  generateDrawSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 2205, 44100); // 0.05 seconde
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      data[i] = Math.random() * 0.05 * Math.exp(-i / 500);
-    }
-    
-    return buffer;
+  playLand() {
+    this.play('land');
   }
 
-  generateGoalSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 8820, 44100); // 0.2 seconde
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      const frequency = 400 + Math.sin(i / 100) * 50;
-      data[i] = Math.sin(2 * Math.PI * frequency * i / 44100) * 0.3 * Math.exp(-i / 3000);
-    }
-    
-    return buffer;
+  playSuccess() {
+    this.play('success');
   }
 
-  generateClickSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 2205, 44100);
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      data[i] = Math.random() * 0.1 * Math.exp(-i / 200);
-    }
-    
-    return buffer;
+  playCountdown() {
+    this.play('countdown');
   }
 
-  generateSuccessSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 13230, 44100); // 0.3 seconde
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      const frequency = 600 + Math.sin(i / 150) * 100;
-      data[i] = Math.sin(2 * Math.PI * frequency * i / 44100) * 0.4 * Math.exp(-i / 4000);
-    }
-    
-    return buffer;
-  }
-
-  generateErrorSound() {
-    if (!this.audioContext) return null;
-    const buffer = this.audioContext.createBuffer(1, 8820, 44100);
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < buffer.length; i++) {
-      const frequency = 200 - (i / 44.1);
-      data[i] = Math.sin(2 * Math.PI * frequency * i / 44100) * 0.2 * Math.exp(-i / 2000);
-    }
-    
-    return buffer;
-  }
-
-  setVolume(volume) {
-    this.volume = Math.max(0, Math.min(1, volume));
+  playGameOver() {
+    this.play('gameOver');
   }
 
   toggleMute() {
     this.isMuted = !this.isMuted;
     return this.isMuted;
+  }
+
+  setVolume(volume) {
+    this.volume = Math.max(0, Math.min(1, volume));
+    Object.values(this.sounds).forEach(sound => {
+      sound.volume = this.volume;
+    });
   }
 
   getMuteState() {

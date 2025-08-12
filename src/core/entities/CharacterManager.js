@@ -4,9 +4,10 @@ import { Character } from "./Character.js";
  * Gestionnaire des personnages avec logique de groupe
  */
 export class CharacterManager {
-  constructor(physics, gameState) {
+  constructor(physics, gameState, soundManager) {
     this.physics = physics;
     this.gameState = gameState;
+    this.soundManager = soundManager;
     this.characters = new Map();
     this.spawnConfig = null;
   }
@@ -37,6 +38,7 @@ export class CharacterManager {
         initialDirection: walkDirection,
         autoJump: autoJump,
         gameState: this.gameState,
+        soundManager: this.soundManager,
       });
 
       this.characters.set(character.id, character);

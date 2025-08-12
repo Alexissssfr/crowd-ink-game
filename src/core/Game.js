@@ -26,10 +26,14 @@ export class Game {
     this.renderer = new Renderer(this.canvas, this.ctx);
     this.input = new InputManager(this.canvas);
     this.ui = new UIManager();
-    this.characters = new CharacterManager(this.physics, this.state);
+    this.soundManager = new SoundManager();
+    this.characters = new CharacterManager(
+      this.physics,
+      this.state,
+      this.soundManager
+    );
     this.drawing = new DrawingSystem(this.physics, this.state);
     this.challengeManager = new ChallengeManager(challenges);
-    this.soundManager = new SoundManager();
 
     // Passer le gestionnaire de sons à l'UI
     this.ui.soundManager = this.soundManager;
@@ -43,6 +47,7 @@ export class Game {
     this.lastTime = 0;
     this.accumulator = 0;
     this.timeStep = 1 / 60; // 60 FPS fixe pour la physique
+    this.lastCountdownSecond = 0;
   }
 
   setupCanvas() {
@@ -75,12 +80,10 @@ export class Game {
     // Événements de dessin (toujours actifs)
     this.input.onDrawStart = (point) => {
       this.drawing.startStroke(point);
-      this.soundManager.play("lineDraw");
     };
     this.input.onDrawMove = (point) => this.drawing.continueStroke(point);
     this.input.onDrawEnd = () => {
       this.drawing.finishStroke();
-      this.soundManager.play("lineDraw");
     };
     this.input.onErase = (point) => this.drawing.eraseAt(point);
 
@@ -89,27 +92,21 @@ export class Game {
 
     // Événements UI
     this.ui.onStartGame = (settings) => {
-      this.soundManager.play("buttonClick");
       this.startChallenge(settings);
     };
     this.ui.onReset = () => {
-      this.soundManager.play("buttonClick");
       this.resetChallenge();
     };
     this.ui.onNext = () => {
-      this.soundManager.play("buttonClick");
       this.nextChallenge();
     };
     this.ui.onValidate = () => {
-      this.soundManager.play("buttonClick");
       this.validateScore();
     };
     this.ui.onSpeedChange = (speed) => {
-      this.soundManager.play("buttonClick");
       this.setGameSpeed(speed);
     };
     this.ui.onChallengeSelect = (index) => {
-      this.soundManager.play("buttonClick");
       this.loadChallenge(index);
     };
 
@@ -259,6 +256,17 @@ export class Game {
       const timeLeft = Math.max(0, this.state.preparationTimeRemaining / 1000);
       this.ui.showPreparationCountdown(timeLeft);
 
+      // Son de countdown pour chaque seconde
+      const currentSecond = Math.ceil(timeLeft);
+      if (
+        currentSecond !== this.lastCountdownSecond &&
+        currentSecond > 0 &&
+        currentSecond <= 3
+      ) {
+        this.soundManager.playCountdown();
+        this.lastCountdownSecond = currentSecond;
+      }
+
       // Log du temps restant (occasionnel)
       if (Math.random() < 0.02) {
         // ~1 fois toutes les 50 frames
@@ -277,6 +285,7 @@ export class Game {
         );
         this.characters.unfreezeCharacters();
         console.log("🚀 Les personnages commencent à bouger !");
+        this.soundManager.playCountdown();
       }
     }
 
@@ -334,6 +343,7 @@ export class Game {
 
     // Fin immédiate si tous morts
     if (this.characters.areAllDead()) {
+      this.soundManager.playGameOver();
       this.endChallenge(false);
       return;
     }

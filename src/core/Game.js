@@ -119,6 +119,10 @@ export class Game {
         this.resetChallenge();
       } else if (e.code === "KeyN") {
         this.nextChallenge();
+      } else if (e.code === "KeyT") {
+        // Test audio avec la touche T
+        console.log("🔊 Test audio avec la touche T");
+        this.soundManager.playJump();
       }
     });
   }

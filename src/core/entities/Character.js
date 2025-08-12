@@ -125,7 +125,9 @@ export class Character {
         this.stuckTimer = Math.max(0, this.stuckTimer - 30);
         // Son d'atterrissage
         if (this.soundManager) {
-          console.log(`🔊 Personnage ${this.id} ATTERRIT - Son d'atterrissage joué`);
+          console.log(
+            `🔊 Personnage ${this.id} ATTERRIT - Son d'atterrissage joué`
+          );
           this.soundManager.playLand();
         }
       }
@@ -1282,7 +1284,9 @@ export class Character {
 
     // Son quand un personnage entre dans la zone
     if (!wasInGoal && inGoal && this.soundManager) {
-      console.log(`🔊 Personnage ${this.id} ARRIVE DANS LA ZONE - Son de succès joué`);
+      console.log(
+        `🔊 Personnage ${this.id} ARRIVE DANS LA ZONE - Son de succès joué`
+      );
       this.soundManager.playSuccess();
     }
 

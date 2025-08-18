@@ -449,6 +449,20 @@ export class Game {
         if (this.soundManager && typeof this.soundManager.playTimerStart === 'function') {
           this.soundManager.playTimerStart();
         }
+        
+        // Test audio pour vérifier que les sons fonctionnent
+        console.log("🔊 Test audio du chrono - Vérification SoundManager:", {
+          hasAudioContext: !!this.soundManager.audioContext,
+          audioContextState: this.soundManager.audioContext?.state,
+          hasPlayTimerBeep: typeof this.soundManager.playTimerBeep === 'function',
+          hasPlayTimerEnd: typeof this.soundManager.playTimerEnd === 'function'
+        });
+        
+        // Test immédiat d'un bip
+        if (this.soundManager && typeof this.soundManager.playTimerBeep === 'function') {
+          console.log("🔊 Test immédiat d'un bip de chrono...");
+          this.soundManager.playTimerBeep();
+        }
 
         this.state.startValidation();
       }

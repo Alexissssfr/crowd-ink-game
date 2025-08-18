@@ -52,7 +52,7 @@ export class GameState {
     // Phase de préparation
     this.isPreparationPhase = false;
     this.preparationTimeRemaining = 0;
-    
+
     // Audio pour les bips du chrono
     this.soundManager = null;
     this.lastValidationSecond = -1; // Pour éviter les doublons de bips
@@ -88,29 +88,45 @@ export class GameState {
       // Mise à jour du chrono de validation
       if (this.validationStarted) {
         this.validationTime += deltaTime * 1000;
-        
+
         // Bip du chrono à chaque seconde
         const currentSecond = Math.floor(this.validationTime / 1000);
         const totalSeconds = Math.floor(this.validationDuration / 1000);
         const remainingSeconds = totalSeconds - currentSecond;
-        
-        if (currentSecond !== this.lastValidationSecond && remainingSeconds >= 0) {
+
+        if (
+          currentSecond !== this.lastValidationSecond &&
+          remainingSeconds >= 0
+        ) {
           this.lastValidationSecond = currentSecond;
-          
+
           // Jouer le bip pour chaque seconde du chrono de validation
           if (this.soundManager && remainingSeconds >= 0) {
-            console.log(`⏰ Bip chrono: ${remainingSeconds} seconde(s) restante(s)`);
-            
+            console.log(
+              `⏰ Bip chrono: ${remainingSeconds} seconde(s) restante(s)`
+            );
+
+            // Forcer l'initialisation de l'audio si nécessaire
+            if (
+              this.soundManager.audioContext &&
+              this.soundManager.audioContext.state === "suspended"
+            ) {
+              console.log("🔊 Réactivation du contexte audio...");
+              this.soundManager.audioContext.resume();
+            }
+
             if (remainingSeconds === 0) {
               // Son spécial pour la fin du chrono
-              if (typeof this.soundManager.playTimerEnd === 'function') {
+              if (typeof this.soundManager.playTimerEnd === "function") {
                 this.soundManager.playTimerEnd();
-              } else if (typeof this.soundManager.playTimerBeep === 'function') {
+              } else if (
+                typeof this.soundManager.playTimerBeep === "function"
+              ) {
                 this.soundManager.playTimerBeep();
               }
             } else {
               // Bip normal pour les autres secondes
-              if (typeof this.soundManager.playTimerBeep === 'function') {
+              if (typeof this.soundManager.playTimerBeep === "function") {
                 this.soundManager.playTimerBeep();
               } else {
                 console.warn("⚠️ playTimerBeep non disponible dans GameState");
@@ -118,7 +134,7 @@ export class GameState {
             }
           }
         }
-        
+
         // Log occasionnel pour le chrono de validation
         if (Math.random() < 0.02) {
           const progress = (

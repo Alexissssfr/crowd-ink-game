@@ -133,8 +133,13 @@ export class CharacterManager {
     if (!goal) return 0;
 
     let count = 0;
+    let debugInfo = [];
+    
     for (const character of this.characters.values()) {
-      if (!character.isAlive()) continue;
+      if (!character.isAlive()) {
+        debugInfo.push(`Personnage ${character.id}: MORT`);
+        continue;
+      }
 
       // Vérification en temps réel de la position
       const position = character.body.position;
@@ -146,8 +151,18 @@ export class CharacterManager {
 
       if (inGoal) {
         count++;
+        debugInfo.push(`Personnage ${character.id}: DANS ZONE (${position.x.toFixed(0)}, ${position.y.toFixed(0)})`);
+      } else {
+        debugInfo.push(`Personnage ${character.id}: HORS ZONE (${position.x.toFixed(0)}, ${position.y.toFixed(0)}) - Zone: (${goal.x}, ${goal.y}, ${goal.w}, ${goal.h})`);
       }
     }
+    
+    // Log de debug toutes les 2 secondes
+    if (Math.random() < 0.01) {
+      console.log(`🔍 DEBUG Zone: ${count}/${this.characters.size} personnages dans la zone`);
+      console.log(`📍 Détails:`, debugInfo);
+    }
+    
     return count;
   }
 
@@ -350,3 +365,4 @@ export class CharacterManager {
     };
   }
 }
+

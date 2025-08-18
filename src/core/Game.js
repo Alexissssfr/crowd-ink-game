@@ -368,6 +368,11 @@ export class Game {
       this.state.currentChallenge.goal
     );
     this.state.savedCount = charactersInGoal;
+    
+    // Log de debug pour le chrono
+    if (Math.random() < 0.02) {
+      console.log(`⏰ checkEndConditions: ${charactersInGoal} personnages dans la zone, validationStarted: ${this.state.validationStarted}`);
+    }
 
     // Fin immédiate si tous morts
     if (this.characters.areAllDead()) {

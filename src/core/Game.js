@@ -93,7 +93,9 @@ export class Game {
     // Événements de dessin (toujours actifs)
     this.input.onDrawStart = (point) => {
       this.drawing.startStroke(point);
-      this.soundManager.playDraw();
+      if (this.soundManager && typeof this.soundManager.playDraw === 'function') {
+        this.soundManager.playDraw();
+      }
     };
     this.input.onDrawMove = (point) => this.drawing.continueStroke(point);
     this.input.onDrawEnd = () => {
@@ -177,7 +179,9 @@ export class Game {
     this.state.gameSettings = settings;
 
     // Son de lancement du jeu
-    this.soundManager.playGameStart();
+    if (this.soundManager && typeof this.soundManager.playGameStart === 'function') {
+      this.soundManager.playGameStart();
+    }
 
     // D'abord fermer le panneau de préparation
     console.log("📋 Tentative de fermeture du panneau...");
@@ -195,7 +199,9 @@ export class Game {
     this.state.startPreparationPhase(settings.prepTime);
 
     // Son de début de préparation
-    this.soundManager.playPreparationStart();
+    if (this.soundManager && typeof this.soundManager.playPreparationStart === 'function') {
+      this.soundManager.playPreparationStart();
+    }
 
     // Charger le challenge (personnages créés gelés)
     console.log("🏗️ Chargement du challenge...");
@@ -315,7 +321,9 @@ export class Game {
         currentSecond > 0 &&
         currentSecond <= 3
       ) {
-        this.soundManager.playPreparationBeep();
+        if (this.soundManager && typeof this.soundManager.playPreparationBeep === 'function') {
+          this.soundManager.playPreparationBeep();
+        }
         this.lastCountdownSecond = currentSecond;
       }
 
@@ -337,7 +345,9 @@ export class Game {
         );
         this.characters.unfreezeCharacters();
         console.log("🚀 Les personnages commencent à bouger !");
-        this.soundManager.playPreparationEnd();
+        if (this.soundManager && typeof this.soundManager.playPreparationEnd === 'function') {
+          this.soundManager.playPreparationEnd();
+        }
       }
     }
 
@@ -505,9 +515,13 @@ export class Game {
 
     // Son de victoire ou de game over
     if (won) {
-      this.soundManager.playVictory();
+      if (this.soundManager && typeof this.soundManager.playVictory === 'function') {
+        this.soundManager.playVictory();
+      }
     } else {
-      this.soundManager.playGameOver();
+      if (this.soundManager && typeof this.soundManager.playGameOver === 'function') {
+        this.soundManager.playGameOver();
+      }
     }
 
     const score = this.calculateScore(won);

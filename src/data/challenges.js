@@ -11,7 +11,7 @@ const checkpointChallenge = {
   targetTime: 60,
   spawn: { x: 100, y: 500 },
   checkpointZone: { x: 600, y: 400, w: 120, h: 60 }, // Zone de passage orange
-  goal: { x: 1000, y: 500, w: 120, h: 60 }, // Zone finale verte
+  goal: { x: 1000, y: 520, w: 120, h: 60 }, // Zone finale verte - alignée avec la plateforme
   walkDirection: 1,
   build(physics, width, height) {
     // Plateformes
@@ -44,7 +44,7 @@ export const challenges = [
     numCharacters: 12,
     targetTime: 45,
     spawn: { x: 100, y: 500 }, // Plus haut pour voir les jambes
-    goal: { x: 1000, y: 520, w: 120, h: 60 },
+    goal: { x: 1000, y: 540, w: 120, h: 60 }, // Alignée avec la plateforme à y: 580
     walkDirection: 1,
     build(physics, width, height) {
       // Plateformes de départ et d'arrivée
@@ -60,7 +60,7 @@ export const challenges = [
       
       physics.addStaticBody(startPlatform);
       physics.addStaticBody(endPlatform);
-      physics.createGoalZone(1000, 520, 120, 60);
+      physics.createGoalZone(1000, 540, 120, 60);
     }
   },
 
@@ -111,7 +111,7 @@ export const challenges = [
     numCharacters: 18,
     targetTime: 75,
     spawn: { x: 140, y: 540 },
-    goal: { x: 1020, y: 540, w: 120, h: 60 },
+    goal: { x: 1020, y: 560, w: 120, h: 60 }, // Alignée avec la plateforme à y: 600
     walkDirection: 1,
     build(physics, width, height) {
       const leftCliff = Bodies.rectangle(220, 600, 300, 40, {
@@ -133,7 +133,7 @@ export const challenges = [
       physics.addStaticBody(leftCliff);
       physics.addStaticBody(rightCliff);
       physics.addStaticBody(pillar);
-      physics.createGoalZone(1020, 540, 120, 60);
+      physics.createGoalZone(1020, 560, 120, 60);
     }
   },
 

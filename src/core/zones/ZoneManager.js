@@ -33,8 +33,11 @@ export class ZoneManager {
         console.log('✅ Zone de passage atteinte !');
         
         // Jouer le son de checkpoint une seule fois
-        if (this.soundManager) {
+        if (this.soundManager && typeof this.soundManager.playZoneActivated === 'function') {
           this.soundManager.playZoneActivated();
+        } else if (this.soundManager && typeof this.soundManager.playSuccess === 'function') {
+          // Fallback vers le son de succès si playZoneActivated n'existe pas
+          this.soundManager.playSuccess();
         }
         
         return { type: 'checkpoint', success: true };

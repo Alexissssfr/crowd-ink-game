@@ -124,14 +124,21 @@ export class Character {
         // Vient d'atterrir, réduire le timer de blocage
         this.stuckTimer = Math.max(0, this.stuckTimer - 30);
         // Son d'atterrissage
-        if (this.soundManager) {
+        if (
+          this.soundManager &&
+          typeof this.soundManager.playLand === "function"
+        ) {
           console.log(
             `🔊 Personnage ${this.id} ATTERRIT - Son d'atterrissage joué`
           );
           this.soundManager.playLand();
         }
       }
-    } else if (wasGrounded && this.soundManager) {
+    } else if (
+      wasGrounded &&
+      this.soundManager &&
+      typeof this.soundManager.playFly === "function"
+    ) {
       // Vient de décoller, son de vol
       console.log(`🔊 Personnage ${this.id} DÉCOLLE - Son de vol joué`);
       this.soundManager.playFly();
@@ -1062,7 +1069,7 @@ export class Character {
     this.isGrounded = false; // Force l'état non-grounded
 
     // Son de saut
-    if (this.soundManager) {
+    if (this.soundManager && typeof this.soundManager.playJump === "function") {
       console.log(`🔊 Personnage ${this.id} SAUTE - Son joué`);
       this.soundManager.playJump();
     }

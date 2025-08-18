@@ -7,6 +7,7 @@ import { DrawingSystem } from "./drawing/DrawingSystem.js";
 import { ChallengeManager } from "./challenges/ChallengeManager.js";
 import { GameState } from "./state/GameState.js";
 import { SoundManager } from "./audio/SoundManager.js";
+import { ZoneManager } from "./zones/ZoneManager.js";
 import { challenges } from "../data/challenges.js";
 
 /**
@@ -27,6 +28,7 @@ export class Game {
     this.input = new InputManager(this.canvas);
     this.ui = new UIManager();
     this.soundManager = new SoundManager();
+    this.zoneManager = new ZoneManager();
     this.characters = new CharacterManager(
       this.physics,
       this.state,
@@ -35,8 +37,12 @@ export class Game {
     this.drawing = new DrawingSystem(this.physics, this.state);
     this.challengeManager = new ChallengeManager(challenges);
 
-    // Passer le gestionnaire de sons à l'UI
+    // Passer les gestionnaires à l'UI
     this.ui.soundManager = this.soundManager;
+    this.ui.zoneManager = this.zoneManager;
+    
+    // Rendre le zoneManager accessible globalement pour les personnages
+    window.zoneManager = this.zoneManager;
 
     // Liaison des événements
     this.bindEvents();
@@ -190,6 +196,14 @@ export class Game {
     // Reconstruire le monde physique
     this.physics.reset();
     this.physics.createWorldBounds(this.canvas.width, this.canvas.height);
+    
+    // Initialiser les zones (checkpoint + finale)
+    if (challenge.checkpointZone) {
+      this.zoneManager.initZones(challenge.checkpointZone, challenge.goal);
+    } else {
+      this.zoneManager.initZones(null, challenge.goal);
+    }
+    
     challenge.build(this.physics, this.canvas.width, this.canvas.height);
 
     // Recréer les personnages
@@ -326,7 +340,15 @@ export class Game {
 
     // Rendu du monde
     this.renderer.renderBackground();
-    this.renderer.renderGoalZone(this.state.currentChallenge?.goal);
+    
+    // Rendu des zones
+    if (this.zoneManager.getZoneStates().checkpoint) {
+      // Mode avec zone de passage
+      this.renderer.renderZoneManager(this.zoneManager);
+    } else {
+      // Mode normal
+      this.renderer.renderGoalZone(this.state.currentChallenge?.goal);
+    }
     this.renderer.renderStaticBodies(this.physics.getBodies());
 
     // Rendu du système de dessin

@@ -104,6 +104,81 @@ export class Renderer {
     ctx.textAlign = 'left';
   }
 
+  // Rendu des zones de passage
+  renderZoneManager(zoneManager) {
+    if (!zoneManager) return;
+    
+    const states = zoneManager.getZoneStates();
+    const ctx = this.ctx;
+    
+    // Rendu de la zone de passage (checkpoint)
+    if (states.checkpoint) {
+      const { x, y, w, h } = states.checkpoint;
+      const time = performance.now() * 0.002;
+      const alpha = 0.3 + Math.sin(time) * 0.2;
+      
+      // Fond orange pour la zone de passage
+      ctx.fillStyle = `rgba(255, 140, 0, ${alpha})`;
+      ctx.fillRect(x, y, w, h);
+      
+      // Bordure animée orange
+      ctx.strokeStyle = `rgba(255, 140, 0, 0.8)`;
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      ctx.lineDashOffset = time * 20;
+      ctx.strokeRect(x, y, w, h);
+      ctx.setLineDash([]);
+      
+      // Texte "PASSAGE"
+      ctx.fillStyle = `rgba(255, 140, 0, 0.9)`;
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PASSAGE', x + w / 2, y + h / 2);
+      ctx.textAlign = 'left';
+    }
+    
+    // Rendu de la zone finale (avec état)
+    if (states.final) {
+      const { x, y, w, h } = states.final;
+      const time = performance.now() * 0.002;
+      
+      // Couleur selon l'état
+      let fillColor, strokeColor, textColor;
+      if (states.isCheckpointReached) {
+        // Zone finale débloquée - verte
+        fillColor = `rgba(76, 175, 80, 0.25)`;
+        strokeColor = `rgba(76, 175, 80, 0.8)`;
+        textColor = `rgba(76, 175, 80, 0.9)`;
+      } else {
+        // Zone finale bloquée - grise
+        fillColor = `rgba(128, 128, 128, 0.1)`;
+        strokeColor = `rgba(128, 128, 128, 0.3)`;
+        textColor = `rgba(128, 128, 128, 0.5)`;
+      }
+      
+      // Fond de la zone
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(x, y, w, h);
+      
+      // Bordure
+      const alpha = 0.5 + Math.sin(time) * 0.3;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      ctx.lineDashOffset = time * 20;
+      ctx.strokeRect(x, y, w, h);
+      ctx.setLineDash([]);
+      
+      // Texte
+      const text = states.isCheckpointReached ? 'OBJECTIF' : 'BLOQUÉ';
+      ctx.fillStyle = textColor;
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, x + w / 2, y + h / 2);
+      ctx.textAlign = 'left';
+    }
+  }
+
   // Rendu des corps statiques (obstacles, plateformes)
   renderStaticBodies(bodies) {
     for (const body of bodies) {

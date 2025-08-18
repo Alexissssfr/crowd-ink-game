@@ -1268,6 +1268,31 @@ export class Character {
   }
 
   checkGoalZone() {
+    // Vérifier d'abord si on est en mode zone de passage
+    if (window.zoneManager) {
+      const result = window.zoneManager.checkZoneContact(this);
+
+      if (result.success) {
+        if (result.type === "checkpoint") {
+          if (this.soundManager) {
+            console.log(
+              `🔊 Personnage ${this.id} ATTEINT LA ZONE DE PASSAGE - Son joué`
+            );
+            this.soundManager.playSuccess();
+          }
+        } else if (result.type === "final") {
+          if (this.soundManager) {
+            console.log(
+              `🔊 Personnage ${this.id} ARRIVE DANS LA ZONE FINALE - Son joué`
+            );
+            this.soundManager.playSuccess();
+          }
+        }
+      }
+      return;
+    }
+
+    // Mode normal - vérifier la zone objectif unique
     const position = this.body.position;
     const goal = this.goal;
 

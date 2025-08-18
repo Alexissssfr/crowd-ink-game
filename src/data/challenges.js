@@ -3,7 +3,41 @@ const { Bodies, Body } = window.Matter;
 /**
  * Collection de challenges avec terrains et mécaniques variés
  */
+// Challenge de test avec zone de passage
+const checkpointChallenge = {
+  name: "Zone de Passage",
+  description: "Atteignez d'abord la zone orange, puis la zone verte !",
+  numCharacters: 8,
+  targetTime: 60,
+  spawn: { x: 100, y: 500 },
+  checkpointZone: { x: 600, y: 400, w: 120, h: 60 }, // Zone de passage orange
+  goal: { x: 1000, y: 500, w: 120, h: 60 }, // Zone finale verte
+  walkDirection: 1,
+  build(physics, width, height) {
+    // Plateformes
+    const startPlatform = Bodies.rectangle(200, 550, 300, 30, {
+      isStatic: true,
+      render: { fillStyle: "#37474f" },
+    });
+
+    const middlePlatform = Bodies.rectangle(600, 450, 300, 30, {
+      isStatic: true,
+      render: { fillStyle: "#455a64" },
+    });
+
+    const endPlatform = Bodies.rectangle(1000, 580, 300, 30, {
+      isStatic: true,
+      render: { fillStyle: "#37474f" },
+    });
+
+    physics.addStaticBody(startPlatform);
+    physics.addStaticBody(middlePlatform);
+    physics.addStaticBody(endPlatform);
+  },
+};
+
 export const challenges = [
+  checkpointChallenge, // Ajouter le challenge avec zone de passage en premier
   {
     name: 'Premier Pont',
     description: 'Tracez un pont simple pour franchir le trou',

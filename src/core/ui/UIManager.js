@@ -110,9 +110,15 @@ export class UIManager {
       this.updateStartSpeedDisplay(parseFloat(e.target.value));
     });
 
-    this.elements.startGame?.addEventListener("click", () => {
-      this.handleStartGame();
-    });
+    if (this.elements.startGame) {
+      console.log("✅ Bouton start-game trouvé, ajout de l'event listener");
+      this.elements.startGame.addEventListener("click", () => {
+        console.log("🎯 Clic sur le bouton start-game détecté !");
+        this.handleStartGame();
+      });
+    } else {
+      console.error("❌ Bouton start-game NON TROUVÉ !");
+    }
 
     // Statut de fin
     this.elements.statusRestart?.addEventListener("click", () => {
@@ -174,6 +180,16 @@ export class UIManager {
     this.resetStartPanelValues();
 
     console.log("✅ showStartPanel() terminée");
+    
+    // Vérification finale
+    if (this.elements.startPanel) {
+      console.log("🔍 Vérification finale startPanel:", {
+        display: this.elements.startPanel.style.display,
+        visibility: this.elements.startPanel.style.visibility,
+        opacity: this.elements.startPanel.style.opacity,
+        classList: this.elements.startPanel.classList.toString()
+      });
+    }
   }
 
   resetStartPanelValues() {
@@ -559,6 +575,8 @@ export class UIManager {
   }
 
   handleStartGame() {
+    console.log("🚀 handleStartGame() appelée");
+
     const settings = {
       prepTime: parseFloat(this.elements.prepTime?.value || 2),
       speed: parseFloat(this.elements.startSpeed?.value || 1),
@@ -567,8 +585,13 @@ export class UIManager {
       timeScale: parseFloat(this.elements.startSpeed?.value || 1),
     };
 
+    console.log("⚙️ Settings:", settings);
+
     if (this.onStartGame) {
+      console.log("✅ onStartGame callback trouvé, appel...");
       this.onStartGame(settings);
+    } else {
+      console.error("❌ onStartGame callback NON DÉFINI !");
     }
   }
 

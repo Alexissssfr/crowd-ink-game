@@ -40,8 +40,14 @@ export class Game {
     // Passer les gestionnaires à l'UI et au GameState
     this.ui.soundManager = this.soundManager;
     this.ui.zoneManager = this.zoneManager;
-    this.state.setSoundManager(this.soundManager);
-    
+
+    // S'assurer que le GameState est initialisé avant d'appeler setSoundManager
+    if (this.state && typeof this.state.setSoundManager === "function") {
+      this.state.setSoundManager(this.soundManager);
+    } else {
+      console.warn("⚠️ GameState ou setSoundManager non disponible");
+    }
+
     // Rendre le zoneManager accessible globalement pour les personnages
     window.zoneManager = this.zoneManager;
 
@@ -128,15 +134,21 @@ export class Game {
         this.resetChallenge();
       } else if (e.code === "KeyN") {
         this.nextChallenge();
-          } else if (e.code === "KeyT") {
-      // Test audio avec la touche T
-      console.log("🔊 Test audio avec la touche T");
-      this.soundManager.testAudio();
-    }
+      } else if (e.code === "KeyT") {
+        // Test audio avec la touche T
+        console.log("🔊 Test audio avec la touche T");
+        this.soundManager.testAudio();
+      }
     });
   }
 
   start() {
+    // S'assurer que le soundManager est connecté au GameState
+    if (this.state && typeof this.state.setSoundManager === 'function') {
+      this.state.setSoundManager(this.soundManager);
+      console.log("✅ SoundManager connecté au GameState");
+    }
+
     // Charger le premier challenge par défaut
     this.loadChallenge(0);
 
@@ -197,14 +209,18 @@ export class Game {
     // Reconstruire le monde physique
     this.physics.reset();
     this.physics.createWorldBounds(this.canvas.width, this.canvas.height);
-    
+
     // Initialiser les zones (checkpoint + finale)
     if (challenge.checkpointZone) {
-      this.zoneManager.initZones(challenge.checkpointZone, challenge.goal, this.soundManager);
+      this.zoneManager.initZones(
+        challenge.checkpointZone,
+        challenge.goal,
+        this.soundManager
+      );
     } else {
       this.zoneManager.initZones(null, challenge.goal, this.soundManager);
     }
-    
+
     challenge.build(this.physics, this.canvas.width, this.canvas.height);
 
     // Recréer les personnages
@@ -341,7 +357,7 @@ export class Game {
 
     // Rendu du monde
     this.renderer.renderBackground();
-    
+
     // Rendu des zones
     if (this.zoneManager.getZoneStates().checkpoint) {
       // Mode avec zone de passage
@@ -369,8 +385,6 @@ export class Game {
       this.state.currentChallenge.goal
     );
     this.state.savedCount = charactersInGoal;
-    
-
 
     // Fin immédiate si tous morts
     if (this.characters.areAllDead()) {
@@ -396,12 +410,14 @@ export class Game {
             .join(", ")
         );
         console.log(
-          `⏰ Validation démarrée, durée: ${this.state.validationDuration / 1000}s`
+          `⏰ Validation démarrée, durée: ${
+            this.state.validationDuration / 1000
+          }s`
         );
-        
+
         // Jouer le bip de début de chrono
         this.soundManager.playTimerBeep();
-        
+
         this.state.startValidation();
       }
       // Continuer le décompte seulement si il y a encore des personnages

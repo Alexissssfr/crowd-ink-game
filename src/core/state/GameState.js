@@ -100,7 +100,11 @@ export class GameState {
           // Jouer le bip pour chaque seconde restante
           if (this.soundManager && remainingSeconds <= 5) {
             console.log(`⏰ Bip chrono: ${remainingSeconds} seconde(s) restante(s)`);
-            this.soundManager.playTimerBeep();
+            if (typeof this.soundManager.playTimerBeep === 'function') {
+              this.soundManager.playTimerBeep();
+            } else {
+              console.warn("⚠️ playTimerBeep non disponible dans GameState");
+            }
           }
         }
         

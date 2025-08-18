@@ -147,6 +147,15 @@ export class Game {
     if (this.state && typeof this.state.setSoundManager === 'function') {
       this.state.setSoundManager(this.soundManager);
       console.log("✅ SoundManager connecté au GameState");
+      
+      // Vérifier que le soundManager est bien initialisé
+      if (this.soundManager) {
+        console.log("🔊 SoundManager disponible:", {
+          hasPlayTimerBeep: typeof this.soundManager.playTimerBeep === 'function',
+          hasPlaySuccess: typeof this.soundManager.playSuccess === 'function',
+          hasPlayTone: typeof this.soundManager.playTone === 'function'
+        });
+      }
     }
 
     // Charger le premier challenge par défaut
@@ -416,7 +425,14 @@ export class Game {
         );
 
         // Jouer le bip de début de chrono
-        this.soundManager.playTimerBeep();
+        if (this.soundManager && typeof this.soundManager.playTimerBeep === 'function') {
+          this.soundManager.playTimerBeep();
+        } else {
+          console.warn("⚠️ playTimerBeep non disponible, utilisation de playSuccess");
+          if (this.soundManager && typeof this.soundManager.playSuccess === 'function') {
+            this.soundManager.playSuccess();
+          }
+        }
 
         this.state.startValidation();
       }

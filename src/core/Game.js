@@ -93,7 +93,10 @@ export class Game {
     // Événements de dessin (toujours actifs)
     this.input.onDrawStart = (point) => {
       this.drawing.startStroke(point);
-      if (this.soundManager && typeof this.soundManager.playDraw === 'function') {
+      if (
+        this.soundManager &&
+        typeof this.soundManager.playDraw === "function"
+      ) {
         this.soundManager.playDraw();
       }
     };
@@ -146,16 +149,17 @@ export class Game {
 
   start() {
     // S'assurer que le soundManager est connecté au GameState
-    if (this.state && typeof this.state.setSoundManager === 'function') {
+    if (this.state && typeof this.state.setSoundManager === "function") {
       this.state.setSoundManager(this.soundManager);
       console.log("✅ SoundManager connecté au GameState");
-      
+
       // Vérifier que le soundManager est bien initialisé
       if (this.soundManager) {
         console.log("🔊 SoundManager disponible:", {
-          hasPlayTimerBeep: typeof this.soundManager.playTimerBeep === 'function',
-          hasPlaySuccess: typeof this.soundManager.playSuccess === 'function',
-          hasPlayTone: typeof this.soundManager.playTone === 'function'
+          hasPlayTimerBeep:
+            typeof this.soundManager.playTimerBeep === "function",
+          hasPlaySuccess: typeof this.soundManager.playSuccess === "function",
+          hasPlayTone: typeof this.soundManager.playTone === "function",
         });
       }
     }
@@ -179,7 +183,10 @@ export class Game {
     this.state.gameSettings = settings;
 
     // Son de lancement du jeu
-    if (this.soundManager && typeof this.soundManager.playGameStart === 'function') {
+    if (
+      this.soundManager &&
+      typeof this.soundManager.playGameStart === "function"
+    ) {
       this.soundManager.playGameStart();
     }
 
@@ -199,7 +206,10 @@ export class Game {
     this.state.startPreparationPhase(settings.prepTime);
 
     // Son de début de préparation
-    if (this.soundManager && typeof this.soundManager.playPreparationStart === 'function') {
+    if (
+      this.soundManager &&
+      typeof this.soundManager.playPreparationStart === "function"
+    ) {
       this.soundManager.playPreparationStart();
     }
 
@@ -321,7 +331,10 @@ export class Game {
         currentSecond > 0 &&
         currentSecond <= 3
       ) {
-        if (this.soundManager && typeof this.soundManager.playPreparationBeep === 'function') {
+        if (
+          this.soundManager &&
+          typeof this.soundManager.playPreparationBeep === "function"
+        ) {
           this.soundManager.playPreparationBeep();
         }
         this.lastCountdownSecond = currentSecond;
@@ -345,7 +358,10 @@ export class Game {
         );
         this.characters.unfreezeCharacters();
         console.log("🚀 Les personnages commencent à bouger !");
-        if (this.soundManager && typeof this.soundManager.playPreparationEnd === 'function') {
+        if (
+          this.soundManager &&
+          typeof this.soundManager.playPreparationEnd === "function"
+        ) {
           this.soundManager.playPreparationEnd();
         }
       }
@@ -439,27 +455,42 @@ export class Game {
             this.state.validationDuration / 1000
           }s`
         );
+        console.log(
+          "🔍 Debug validationDuration:",
+          this.state.validationDuration,
+          "ms"
+        );
 
         // Son d'activation de la zone verte (premier personnage qui entre)
-        if (this.soundManager && typeof this.soundManager.playZoneActivated === 'function') {
+        if (
+          this.soundManager &&
+          typeof this.soundManager.playZoneActivated === "function"
+        ) {
           this.soundManager.playZoneActivated();
         }
-        
+
         // Son de début de chrono de validation
-        if (this.soundManager && typeof this.soundManager.playTimerStart === 'function') {
+        if (
+          this.soundManager &&
+          typeof this.soundManager.playTimerStart === "function"
+        ) {
           this.soundManager.playTimerStart();
         }
-        
+
         // Test audio pour vérifier que les sons fonctionnent
         console.log("🔊 Test audio du chrono - Vérification SoundManager:", {
           hasAudioContext: !!this.soundManager.audioContext,
           audioContextState: this.soundManager.audioContext?.state,
-          hasPlayTimerBeep: typeof this.soundManager.playTimerBeep === 'function',
-          hasPlayTimerEnd: typeof this.soundManager.playTimerEnd === 'function'
+          hasPlayTimerBeep:
+            typeof this.soundManager.playTimerBeep === "function",
+          hasPlayTimerEnd: typeof this.soundManager.playTimerEnd === "function",
         });
-        
+
         // Test immédiat d'un bip
-        if (this.soundManager && typeof this.soundManager.playTimerBeep === 'function') {
+        if (
+          this.soundManager &&
+          typeof this.soundManager.playTimerBeep === "function"
+        ) {
           console.log("🔊 Test immédiat d'un bip de chrono...");
           this.soundManager.playTimerBeep();
         }
@@ -483,6 +514,12 @@ export class Game {
       this.state.getValidationProgress() >= 1 &&
       charactersInGoal > 0
     ) {
+      console.log(
+        "🔍 Validation automatique déclenchée - validationStarted:",
+        this.state.validationStarted,
+        "progress:",
+        this.state.getValidationProgress()
+      );
       const goalDetails = this.characters.getGoalDetails(
         this.state.currentChallenge.goal
       );
@@ -529,11 +566,17 @@ export class Game {
 
     // Son de victoire ou de game over
     if (won) {
-      if (this.soundManager && typeof this.soundManager.playVictory === 'function') {
+      if (
+        this.soundManager &&
+        typeof this.soundManager.playVictory === "function"
+      ) {
         this.soundManager.playVictory();
       }
     } else {
-      if (this.soundManager && typeof this.soundManager.playGameOver === 'function') {
+      if (
+        this.soundManager &&
+        typeof this.soundManager.playGameOver === "function"
+      ) {
         this.soundManager.playGameOver();
       }
     }

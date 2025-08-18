@@ -88,9 +88,10 @@ export class GameState {
       // Mise à jour du chrono de validation
       if (this.validationStarted) {
         this.validationTime += deltaTime * 1000;
-        
+
         // Log du début du chrono (une seule fois)
-        if (this.validationTime < 100) { // Première frame
+        if (this.validationTime < 100) {
+          // Première frame
           console.log("🔊 Chrono de validation démarré - Bips activés !");
         }
 
@@ -99,8 +100,23 @@ export class GameState {
         const totalSeconds = Math.floor(this.validationDuration / 1000);
         const remainingSeconds = totalSeconds - currentSecond;
 
-        if (currentSecond !== this.lastValidationSecond) {
-          this.lastValidationSecond = currentSecond;
+        // Debug pour voir les valeurs
+        if (Math.random() < 0.1) {
+          // Log occasionnel
+          console.log(
+            `🔍 Debug chrono: currentSecond=${currentSecond}, lastValidationSecond=${this.lastValidationSecond}, remainingSeconds=${remainingSeconds}`
+          );
+        }
+
+        // Test direct : jouer un bip toutes les secondes
+        const timeInSeconds = this.validationTime / 1000;
+        const secondsElapsed = Math.floor(timeInSeconds);
+
+        if (secondsElapsed !== this.lastValidationSecond) {
+          this.lastValidationSecond = secondsElapsed;
+          console.log(
+            `⏰ Nouvelle seconde détectée: ${secondsElapsed}s écoulées`
+          );
 
           // Jouer le bip pour chaque seconde du chrono de validation
           if (this.soundManager) {

@@ -1274,19 +1274,11 @@ export class Character {
 
       if (result.success) {
         if (result.type === "checkpoint") {
-          if (this.soundManager) {
-            console.log(
-              `🔊 Personnage ${this.id} ATTEINT LA ZONE DE PASSAGE - Son joué`
-            );
-            this.soundManager.playSuccess();
-          }
+          // Son de checkpoint supprimé pour éviter la répétition
+          // Le son sera joué une seule fois par le ZoneManager
         } else if (result.type === "final") {
-          if (this.soundManager) {
-            console.log(
-              `🔊 Personnage ${this.id} ARRIVE DANS LA ZONE FINALE - Son joué`
-            );
-            this.soundManager.playSuccess();
-          }
+          // Son de zone finale supprimé pour éviter la répétition
+          // Le son sera joué une seule fois quand le chrono commence dans Game.js
         }
       }
       return;
@@ -1307,13 +1299,8 @@ export class Character {
     // La zone verte n'a AUCUN effet magnétique
     // C'est au joueur de dessiner des traits bleus pour enfermer les personnages
 
-    // Son quand un personnage entre dans la zone
-    if (!wasInGoal && inGoal && this.soundManager) {
-      console.log(
-        `🔊 Personnage ${this.id} ARRIVE DANS LA ZONE - Son de succès joué`
-      );
-      this.soundManager.playSuccess();
-    }
+    // Son quand un personnage entre dans la zone (supprimé pour éviter la répétition)
+    // Le son de succès sera joué une seule fois quand le chrono commence dans Game.js
 
     this.isInGoal = inGoal;
   }

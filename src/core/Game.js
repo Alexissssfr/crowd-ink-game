@@ -37,9 +37,10 @@ export class Game {
     this.drawing = new DrawingSystem(this.physics, this.state);
     this.challengeManager = new ChallengeManager(challenges);
 
-    // Passer les gestionnaires à l'UI
+    // Passer les gestionnaires à l'UI et au GameState
     this.ui.soundManager = this.soundManager;
     this.ui.zoneManager = this.zoneManager;
+    this.state.setSoundManager(this.soundManager);
     
     // Rendre le zoneManager accessible globalement pour les personnages
     window.zoneManager = this.zoneManager;
@@ -199,9 +200,9 @@ export class Game {
     
     // Initialiser les zones (checkpoint + finale)
     if (challenge.checkpointZone) {
-      this.zoneManager.initZones(challenge.checkpointZone, challenge.goal);
+      this.zoneManager.initZones(challenge.checkpointZone, challenge.goal, this.soundManager);
     } else {
-      this.zoneManager.initZones(null, challenge.goal);
+      this.zoneManager.initZones(null, challenge.goal, this.soundManager);
     }
     
     challenge.build(this.physics, this.canvas.width, this.canvas.height);
@@ -397,6 +398,10 @@ export class Game {
         console.log(
           `⏰ Validation démarrée, durée: ${this.state.validationDuration / 1000}s`
         );
+        
+        // Jouer le bip de début de chrono
+        this.soundManager.playTimerBeep();
+        
         this.state.startValidation();
       }
       // Continuer le décompte seulement si il y a encore des personnages

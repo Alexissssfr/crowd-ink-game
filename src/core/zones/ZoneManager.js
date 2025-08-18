@@ -6,13 +6,15 @@ export class ZoneManager {
     this.checkpointZone = null;
     this.finalZone = null;
     this.isCheckpointReached = false;
+    this.soundManager = null;
   }
 
   // Initialiser les zones pour un challenge
-  initZones(checkpointZone, finalZone) {
+  initZones(checkpointZone, finalZone, soundManager = null) {
     this.checkpointZone = checkpointZone;
     this.finalZone = finalZone;
     this.isCheckpointReached = false;
+    this.soundManager = soundManager;
     
     console.log('🎯 Zones initialisées:', checkpointZone ? 'Avec checkpoint' : 'Sans checkpoint');
   }
@@ -29,6 +31,12 @@ export class ZoneManager {
       if (this.isCharacterInZone(character, this.checkpointZone)) {
         this.isCheckpointReached = true;
         console.log('✅ Zone de passage atteinte !');
+        
+        // Jouer le son de checkpoint une seule fois
+        if (this.soundManager) {
+          this.soundManager.playSuccess();
+        }
+        
         return { type: 'checkpoint', success: true };
       }
       return { type: 'checkpoint', success: false };

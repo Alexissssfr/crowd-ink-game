@@ -110,6 +110,10 @@ export class SoundManager {
     this.playTone(800, 0.1, 0.4);
   }
 
+  playTimerBeep() {
+    this.playTone(500, 0.08, 0.3); // Bip court et aigu pour le chrono
+  }
+
   playGameOver() {
     this.playTone(200, 0.3, 0.4);
   }

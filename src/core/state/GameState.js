@@ -87,6 +87,10 @@ export class GameState {
 
       // Mise à jour du chrono de validation
       if (this.validationStarted) {
+        // Log pour vérifier que validationStarted est true
+        if (Math.random() < 0.1) {
+          console.log("🔍 validationStarted = true - Code audio activé");
+        }
         this.validationTime += deltaTime * 1000;
 
         // Log du début du chrono (une seule fois)
@@ -271,6 +275,7 @@ export class GameState {
   startValidation() {
     this.validationStarted = true;
     this.validationTime = 0;
+    console.log("🔊 startValidation() appelée - validationStarted = true");
   }
 
   resetValidation() {

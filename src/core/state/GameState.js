@@ -91,31 +91,31 @@ export class GameState {
 
         // Log du début du chrono (une seule fois)
         if (this.validationTime < 100) {
-          // Première frame
           console.log("🔊 Chrono de validation démarré - Bips activés !");
         }
 
-        // Bip du chrono à chaque seconde
-        const currentSecond = Math.floor(this.validationTime / 1000);
-        const totalSeconds = Math.floor(this.validationDuration / 1000);
-        const remainingSeconds = totalSeconds - currentSecond;
-
-        // Debug pour voir les valeurs
-        if (Math.random() < 0.1) {
-          // Log occasionnel
-          console.log(
-            `🔍 Debug chrono: currentSecond=${currentSecond}, lastValidationSecond=${this.lastValidationSecond}, remainingSeconds=${remainingSeconds}`
-          );
-        }
-
-        // Test direct : jouer un bip toutes les secondes
+        // Bip du chrono à chaque seconde - VERSION SIMPLIFIÉE
         const timeInSeconds = this.validationTime / 1000;
         const secondsElapsed = Math.floor(timeInSeconds);
+        const totalSeconds = Math.floor(this.validationDuration / 1000);
+        const remainingSeconds = totalSeconds - secondsElapsed;
+
+        // Debug pour voir les valeurs
+        if (Math.random() < 0.05) {
+          // Plus fréquent
+          console.log(
+            `🔍 Debug chrono: secondsElapsed=${secondsElapsed}, lastValidationSecond=${
+              this.lastValidationSecond
+            }, remainingSeconds=${remainingSeconds}, validationTime=${this.validationTime.toFixed(
+              0
+            )}ms`
+          );
+        }
 
         if (secondsElapsed !== this.lastValidationSecond) {
           this.lastValidationSecond = secondsElapsed;
           console.log(
-            `⏰ Nouvelle seconde détectée: ${secondsElapsed}s écoulées`
+            `⏰ Nouvelle seconde détectée: ${secondsElapsed}s écoulées, ${remainingSeconds}s restantes`
           );
 
           // Jouer le bip pour chaque seconde du chrono de validation

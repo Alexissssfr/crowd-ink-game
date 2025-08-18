@@ -34,7 +34,7 @@ export class ZoneManager {
         
         // Jouer le son de checkpoint une seule fois
         if (this.soundManager) {
-          this.soundManager.playSuccess();
+          this.soundManager.playZoneActivated();
         }
         
         return { type: 'checkpoint', success: true };

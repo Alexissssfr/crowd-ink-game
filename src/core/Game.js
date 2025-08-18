@@ -98,7 +98,7 @@ export class Game {
     this.input.onDrawMove = (point) => this.drawing.continueStroke(point);
     this.input.onDrawEnd = () => {
       this.drawing.finishStroke();
-      this.soundManager.playDraw();
+      // Pas de son à la fin du dessin pour éviter la répétition
     };
     this.input.onErase = (point) => this.drawing.eraseAt(point);
 
@@ -176,6 +176,9 @@ export class Game {
     console.log("🚀 startChallenge() appelée avec settings:", settings);
     this.state.gameSettings = settings;
 
+    // Son de lancement du jeu
+    this.soundManager.playGameStart();
+
     // D'abord fermer le panneau de préparation
     console.log("📋 Tentative de fermeture du panneau...");
     this.ui.hideStartPanel();
@@ -190,6 +193,9 @@ export class Game {
       `🎨 Démarrage phase de préparation de ${settings.prepTime}s...`
     );
     this.state.startPreparationPhase(settings.prepTime);
+
+    // Son de début de préparation
+    this.soundManager.playPreparationStart();
 
     // Charger le challenge (personnages créés gelés)
     console.log("🏗️ Chargement du challenge...");
@@ -309,7 +315,7 @@ export class Game {
         currentSecond > 0 &&
         currentSecond <= 3
       ) {
-        this.soundManager.playCountdown();
+        this.soundManager.playPreparationBeep();
         this.lastCountdownSecond = currentSecond;
       }
 
@@ -331,7 +337,7 @@ export class Game {
         );
         this.characters.unfreezeCharacters();
         console.log("🚀 Les personnages commencent à bouger !");
-        this.soundManager.playCountdown();
+        this.soundManager.playPreparationEnd();
       }
     }
 
@@ -424,14 +430,14 @@ export class Game {
           }s`
         );
 
-        // Jouer le bip de début de chrono
-        if (this.soundManager && typeof this.soundManager.playTimerBeep === 'function') {
-          this.soundManager.playTimerBeep();
-        } else {
-          console.warn("⚠️ playTimerBeep non disponible, utilisation de playSuccess");
-          if (this.soundManager && typeof this.soundManager.playSuccess === 'function') {
-            this.soundManager.playSuccess();
-          }
+        // Son d'activation de la zone verte (premier personnage qui entre)
+        if (this.soundManager && typeof this.soundManager.playZoneActivated === 'function') {
+          this.soundManager.playZoneActivated();
+        }
+        
+        // Son de début de chrono de validation
+        if (this.soundManager && typeof this.soundManager.playTimerStart === 'function') {
+          this.soundManager.playTimerStart();
         }
 
         this.state.startValidation();
@@ -496,6 +502,13 @@ export class Game {
   endChallenge(won) {
     this.isRunning = false;
     this.state.endTime = performance.now();
+
+    // Son de victoire ou de game over
+    if (won) {
+      this.soundManager.playVictory();
+    } else {
+      this.soundManager.playGameOver();
+    }
 
     const score = this.calculateScore(won);
     this.ui.showGameStatus(won, {

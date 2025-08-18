@@ -88,7 +88,7 @@ export class SoundManager {
     }
   }
 
-  // Sons spécifiques
+  // Sons de mouvement des personnages
   playJump() {
     this.playTone(300, 0.15, 0.4);
   }
@@ -101,26 +101,75 @@ export class SoundManager {
     this.playTone(150, 0.12, 0.3);
   }
 
-  playSuccess() {
-    this.playTone(600, 0.2, 0.5);
-    setTimeout(() => this.playTone(800, 0.2, 0.5), 100);
+  // Son de victoire (challenge réussi)
+  playVictory() {
+    this.playTone(523, 0.2, 0.6); // Do
+    setTimeout(() => this.playTone(659, 0.2, 0.6), 150); // Mi
+    setTimeout(() => this.playTone(784, 0.3, 0.6), 300); // Sol
+    setTimeout(() => this.playTone(1047, 0.4, 0.6), 450); // Do aigu
   }
 
-  playCountdown() {
+  // Son d'activation de la zone verte (premier personnage qui entre)
+  playZoneActivated() {
+    this.playTone(440, 0.15, 0.5); // La
+    setTimeout(() => this.playTone(554, 0.15, 0.5), 100); // Do#
+  }
+
+  // Son de début de chrono de validation (quand le chrono de 5s commence)
+  playTimerStart() {
+    this.playTone(600, 0.2, 0.5);
+    setTimeout(() => this.playTone(800, 0.2, 0.5), 150);
+  }
+
+  // Bips du chrono de validation (5, 4, 3, 2, 1, 0)
+  playTimerBeep() {
+    this.playTone(500, 0.08, 0.4);
+  }
+
+  // Son de lancement du jeu (quand on clique "Commencer le Challenge")
+  playGameStart() {
+    this.playTone(400, 0.1, 0.5);
+    setTimeout(() => this.playTone(600, 0.1, 0.5), 100);
+    setTimeout(() => this.playTone(800, 0.2, 0.5), 200);
+  }
+
+  // Son de début de préparation (quand la phase de préparation commence)
+  playPreparationStart() {
+    this.playTone(300, 0.15, 0.4);
+    setTimeout(() => this.playTone(500, 0.15, 0.4), 150);
+  }
+
+  // Bips du chrono de préparation (3, 2, 1, GO!)
+  playPreparationBeep() {
     this.playTone(800, 0.1, 0.4);
   }
 
-  playTimerBeep() {
-    this.playTone(500, 0.08, 0.3); // Bip court et aigu pour le chrono
+  // Son de fin de préparation (GO!)
+  playPreparationEnd() {
+    this.playTone(600, 0.1, 0.5);
+    setTimeout(() => this.playTone(800, 0.1, 0.5), 100);
+    setTimeout(() => this.playTone(1000, 0.2, 0.5), 200);
   }
 
+  // Son de game over (challenge échoué)
   playGameOver() {
     this.playTone(200, 0.3, 0.4);
+    setTimeout(() => this.playTone(150, 0.3, 0.4), 200);
   }
 
-  // Son pour le dessin (comme avant)
+  // Son pour le dessin (quand on trace des traits)
   playDraw() {
-    this.playTone(400, 0.1, 0.5); // Plus fort et plus long
+    this.playTone(400, 0.1, 0.5);
+  }
+
+  // Son de succès (générique - pour compatibilité)
+  playSuccess() {
+    this.playVictory();
+  }
+
+  // Son de countdown (générique - pour compatibilité)
+  playCountdown() {
+    this.playPreparationBeep();
   }
 
   // Test audio fort

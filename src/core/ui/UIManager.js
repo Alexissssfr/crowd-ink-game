@@ -462,7 +462,7 @@ export class UIManager {
       document.body.appendChild(indicator);
     }
 
-    const seconds = Math.ceil((1 - progress) * 8);
+    const seconds = Math.ceil((1 - progress) * 5);
 
     // Masquer le message dès que le temps atteint 0
     if (seconds <= 0) {

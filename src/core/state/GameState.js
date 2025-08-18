@@ -35,7 +35,7 @@ export class GameState {
     // Validation du score
     this.validationStarted = false;
     this.validationTime = 0;
-    this.validationDuration = 8000; // 8 secondes de délai
+    this.validationDuration = 5000; // 5 secondes de délai
 
     // Debug
     this.debug = false;

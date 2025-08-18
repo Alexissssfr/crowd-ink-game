@@ -393,7 +393,7 @@ export class Game {
             .join(", ")
         );
         console.log(
-          `⏰ Validation démarrée, durée: ${this.state.validationDuration}ms`
+          `⏰ Validation démarrée, durée: ${this.state.validationDuration / 1000}s`
         );
         this.state.startValidation();
       }

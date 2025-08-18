@@ -97,13 +97,24 @@ export class GameState {
         if (currentSecond !== this.lastValidationSecond && remainingSeconds >= 0) {
           this.lastValidationSecond = currentSecond;
           
-          // Jouer le bip pour chaque seconde restante
-          if (this.soundManager && remainingSeconds <= 5) {
+          // Jouer le bip pour chaque seconde du chrono de validation
+          if (this.soundManager && remainingSeconds >= 0) {
             console.log(`⏰ Bip chrono: ${remainingSeconds} seconde(s) restante(s)`);
-            if (typeof this.soundManager.playTimerBeep === 'function') {
-              this.soundManager.playTimerBeep();
+            
+            if (remainingSeconds === 0) {
+              // Son spécial pour la fin du chrono
+              if (typeof this.soundManager.playTimerEnd === 'function') {
+                this.soundManager.playTimerEnd();
+              } else if (typeof this.soundManager.playTimerBeep === 'function') {
+                this.soundManager.playTimerBeep();
+              }
             } else {
-              console.warn("⚠️ playTimerBeep non disponible dans GameState");
+              // Bip normal pour les autres secondes
+              if (typeof this.soundManager.playTimerBeep === 'function') {
+                this.soundManager.playTimerBeep();
+              } else {
+                console.warn("⚠️ playTimerBeep non disponible dans GameState");
+              }
             }
           }
         }

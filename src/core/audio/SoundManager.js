@@ -123,7 +123,13 @@ export class SoundManager {
 
   // Bips du chrono de validation (5, 4, 3, 2, 1, 0)
   playTimerBeep() {
-    this.playTone(500, 0.08, 0.4);
+    this.playTone(800, 0.15, 0.6); // Plus aigu, plus long et plus fort
+  }
+
+  // Son spécial pour la fin du chrono (0 seconde restante)
+  playTimerEnd() {
+    this.playTone(1000, 0.2, 0.7); // Son plus aigu et plus long pour la fin
+    setTimeout(() => this.playTone(600, 0.2, 0.7), 100); // Deuxième note
   }
 
   // Son de lancement du jeu (quand on clique "Commencer le Challenge")

@@ -44,6 +44,7 @@ export class Game {
     // S'assurer que le GameState est initialisé avant d'appeler setSoundManager
     if (this.state && typeof this.state.setSoundManager === "function") {
       this.state.setSoundManager(this.soundManager);
+      console.log("✅ SoundManager connecté au GameState dans le constructeur");
     } else {
       console.warn("⚠️ GameState ou setSoundManager non disponible");
     }
@@ -95,17 +96,38 @@ export class Game {
       this.drawing.startStroke(point);
       if (
         this.soundManager &&
-        typeof this.soundManager.playDraw === "function"
+        typeof this.soundManager.playHighlighter === "function"
       ) {
-        this.soundManager.playDraw();
+        console.log("🎨 Son de surligneur au début du dessin");
+        this.soundManager.playHighlighter();
       }
     };
-    this.input.onDrawMove = (point) => this.drawing.continueStroke(point);
+    this.input.onDrawMove = (point) => {
+      this.drawing.continueStroke(point);
+      // Son de surligneur pendant le dessin (avec limitation pour éviter la répétition excessive)
+      if (
+        this.soundManager &&
+        typeof this.soundManager.playHighlighter === "function" &&
+        Math.random() < 0.6 // 60% de chance de jouer le son à chaque mouvement
+      ) {
+        console.log("🎨 Son de surligneur pendant le dessin");
+        this.soundManager.playHighlighter();
+      }
+    };
     this.input.onDrawEnd = () => {
       this.drawing.finishStroke();
       // Pas de son à la fin du dessin pour éviter la répétition
     };
-    this.input.onErase = (point) => this.drawing.eraseAt(point);
+    this.input.onErase = (point) => {
+      this.drawing.eraseAt(point);
+      // Son d'effacement
+      if (
+        this.soundManager &&
+        typeof this.soundManager.playErase === "function"
+      ) {
+        this.soundManager.playErase();
+      }
+    };
 
     // Événements de validation
     this.input.onDoubleClick = () => this.validateScore();
@@ -148,21 +170,7 @@ export class Game {
   }
 
   start() {
-    // S'assurer que le soundManager est connecté au GameState
-    if (this.state && typeof this.state.setSoundManager === "function") {
-      this.state.setSoundManager(this.soundManager);
-      console.log("✅ SoundManager connecté au GameState");
-
-      // Vérifier que le soundManager est bien initialisé
-      if (this.soundManager) {
-        console.log("🔊 SoundManager disponible:", {
-          hasPlayTimerBeep:
-            typeof this.soundManager.playTimerBeep === "function",
-          hasPlaySuccess: typeof this.soundManager.playSuccess === "function",
-          hasPlayTone: typeof this.soundManager.playTone === "function",
-        });
-      }
-    }
+    // La connexion du SoundManager au GameState est déjà faite dans le constructeur
 
     // Charger le premier challenge par défaut
     this.loadChallenge(0);
@@ -427,6 +435,18 @@ export class Game {
     );
     this.state.savedCount = charactersInGoal;
 
+    // Debug pour voir les valeurs
+    if (Math.random() < 0.1) {
+      console.log("🔍 Debug checkEndConditions:", {
+        charactersInGoal,
+        hasZoneManager: !!this.zoneManager,
+        hasCheckpointZone: this.zoneManager?.checkpointZone,
+        isCheckpointValidated: this.zoneManager?.getCheckpointValidated?.(),
+        validationStarted: this.state.validationStarted,
+        goal: this.state.currentChallenge.goal,
+      });
+    }
+
     // Fin immédiate si tous morts
     if (this.characters.areAllDead()) {
       this.soundManager.playGameOver();
@@ -434,15 +454,65 @@ export class Game {
       return;
     }
 
-    // Logique de validation avec délai - SEULEMENT si personnages restent dans zone
-    if (charactersInGoal > 0) {
+    // Vérifier d'abord la zone intermédiaire (si elle existe)
+    // MAIS permettre l'affichage du chrono de la zone finale même si checkpoint non validé
+    const checkpointBlocking =
+      this.zoneManager &&
+      this.zoneManager.checkpointZone &&
+      typeof this.zoneManager.getCheckpointValidated === "function" &&
+      !this.zoneManager.getCheckpointValidated();
+
+    if (checkpointBlocking) {
+      console.log(
+        "🚫 Zone intermédiaire non validée, validation finale bloquée"
+      );
+      // On ne retourne plus ici, on continue pour permettre l'affichage du chrono
+    }
+
+    // Debug pour voir l'état des zones
+    if (
+      Math.random() < 0.01 &&
+      this.zoneManager &&
+      typeof this.zoneManager.getCheckpointValidated === "function"
+    ) {
+      console.log("🔍 Debug zones:", {
+        hasCheckpointZone: !!this.zoneManager.checkpointZone,
+        isCheckpointValidated: this.zoneManager.getCheckpointValidated(),
+        charactersInGoal: charactersInGoal,
+        validationStarted: this.state.validationStarted,
+      });
+    }
+
+    // Logique de validation de la zone finale - SEULEMENT si la zone intermédiaire est validée (ou n'existe pas)
+    console.log("✅ Vérification zone finale:", {
+      charactersInGoal,
+      validationStarted: this.state.validationStarted,
+      checkpointBlocking,
+    });
+
+    // BLOQUER le chrono de la zone finale si la zone checkpoint n'est pas validée
+    if (checkpointBlocking) {
+      console.log(
+        "🚫 Zone checkpoint non validée - chrono de la zone finale bloqué"
+      );
+      // Arrêter le chrono s'il était en cours
+      if (this.state.validationStarted) {
+        console.log(
+          "⏹️ Chrono de zone finale arrêté car checkpoint non validé"
+        );
+        this.state.resetValidation();
+      }
+      return; // Ne pas continuer la vérification de la zone finale
+    }
+
+    if (charactersInGoal > 0 && this.characters) {
       if (!this.state.validationStarted) {
         // Obtenir les détails pour un log plus précis
         const goalDetails = this.characters.getGoalDetails(
           this.state.currentChallenge.goal
         );
         console.log(
-          `🎯 Début du décompte: ${goalDetails.inGoal} personnage(s) dans la zone verte`
+          `🎯 Début du décompte zone finale: ${goalDetails.inGoal} personnage(s) dans la zone verte`
         );
         console.log(
           `📍 Positions:`,
@@ -454,11 +524,6 @@ export class Game {
           `⏰ Validation démarrée, durée: ${
             this.state.validationDuration / 1000
           }s`
-        );
-        console.log(
-          "🔍 Debug validationDuration:",
-          this.state.validationDuration,
-          "ms"
         );
 
         // Son d'activation de la zone verte (premier personnage qui entre)
@@ -475,24 +540,6 @@ export class Game {
           typeof this.soundManager.playTimerStart === "function"
         ) {
           this.soundManager.playTimerStart();
-        }
-
-        // Test audio pour vérifier que les sons fonctionnent
-        console.log("🔊 Test audio du chrono - Vérification SoundManager:", {
-          hasAudioContext: !!this.soundManager.audioContext,
-          audioContextState: this.soundManager.audioContext?.state,
-          hasPlayTimerBeep:
-            typeof this.soundManager.playTimerBeep === "function",
-          hasPlayTimerEnd: typeof this.soundManager.playTimerEnd === "function",
-        });
-
-        // Test immédiat d'un bip
-        if (
-          this.soundManager &&
-          typeof this.soundManager.playTimerBeep === "function"
-        ) {
-          console.log("🔊 Test immédiat d'un bip de chrono...");
-          this.soundManager.playTimerBeep();
         }
 
         this.state.startValidation();
@@ -671,6 +718,8 @@ export class Game {
 
 // Initialisation du jeu
 function initGame() {
+  console.log("🚀 Initialisation du jeu...");
+
   const canvas = document.getElementById("game-canvas");
 
   if (!canvas) {
@@ -678,8 +727,16 @@ function initGame() {
     return;
   }
 
-  const game = new Game();
-  game.start();
+  console.log("✅ Canvas trouvé, création de l'instance Game...");
+
+  try {
+    const game = new Game();
+    console.log("✅ Instance Game créée, appel de game.start()...");
+    game.start();
+    console.log("✅ game.start() terminé");
+  } catch (error) {
+    console.error("❌ Erreur lors de l'initialisation du jeu:", error);
+  }
 }
 
 // Attendre que le DOM soit prêt

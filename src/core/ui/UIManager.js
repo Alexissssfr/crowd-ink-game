@@ -180,14 +180,14 @@ export class UIManager {
     this.resetStartPanelValues();
 
     console.log("✅ showStartPanel() terminée");
-    
+
     // Vérification finale
     if (this.elements.startPanel) {
       console.log("🔍 Vérification finale startPanel:", {
         display: this.elements.startPanel.style.display,
         visibility: this.elements.startPanel.style.visibility,
         opacity: this.elements.startPanel.style.opacity,
-        classList: this.elements.startPanel.classList.toString()
+        classList: this.elements.startPanel.classList.toString(),
       });
     }
   }
@@ -570,8 +570,10 @@ export class UIManager {
   }
 
   handleSpeedChange(speed) {
-    this.updateSpeedDisplay(speed);
-    if (this.onSpeedChange) this.onSpeedChange(speed);
+    // Limiter la vitesse de 0 à 1 maximum pour éviter les bugs physiques
+    const clampedSpeed = Math.max(0, Math.min(1, speed));
+    this.updateSpeedDisplay(clampedSpeed);
+    if (this.onSpeedChange) this.onSpeedChange(clampedSpeed);
   }
 
   handleStartGame() {
@@ -579,10 +581,16 @@ export class UIManager {
 
     const settings = {
       prepTime: parseFloat(this.elements.prepTime?.value || 2),
-      speed: parseFloat(this.elements.startSpeed?.value || 1),
+      speed: Math.max(
+        0,
+        Math.min(1, parseFloat(this.elements.startSpeed?.value || 1))
+      ),
       autoJump: this.elements.autoJump?.checked || false,
       lockSpeed: this.elements.lockSpeed?.checked || false,
-      timeScale: parseFloat(this.elements.startSpeed?.value || 1),
+      timeScale: Math.max(
+        0,
+        Math.min(1, parseFloat(this.elements.startSpeed?.value || 1))
+      ),
     };
 
     console.log("⚙️ Settings:", settings);

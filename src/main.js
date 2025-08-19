@@ -57,10 +57,10 @@ class GameApp {
     });
 
     // Ajouter un bouton Suivant
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'btn btn-primary';
-    nextBtn.innerHTML = '<span>➡️</span> Suivant';
-    nextBtn.addEventListener('click', () => {
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "btn btn-primary";
+    nextBtn.innerHTML = "<span>➡️</span> Suivant";
+    nextBtn.addEventListener("click", () => {
       this.soundManager.play("buttonClick");
       this.game.nextLevel();
     });

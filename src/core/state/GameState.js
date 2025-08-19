@@ -36,6 +36,11 @@ export class GameState {
     this.validationStarted = false;
     this.validationTime = 0;
     this.validationDuration = 5000; // 5 secondes de délai
+    
+    // Validation de la zone intermédiaire
+    this.checkpointValidationStarted = false;
+    this.checkpointValidationTime = 0;
+    this.checkpointValidationDuration = 5000; // 5 secondes pour valider la zone intermédiaire
 
     // Debug
     this.debug = false;
@@ -53,9 +58,10 @@ export class GameState {
     this.isPreparationPhase = false;
     this.preparationTimeRemaining = 0;
 
-    // Audio pour les bips du chrono
-    this.soundManager = null;
+    // Audio pour les bips du chrono - NE PAS REMETTRE À NULL
+    // this.soundManager = null; // Gardé pour persister entre les parties
     this.lastValidationSecond = -1; // Pour éviter les doublons de bips
+    this.lastCheckpointValidationSecond = -1; // Pour éviter les doublons de bips de la zone intermédiaire
   }
 
   resetForNewChallenge() {
@@ -85,7 +91,48 @@ export class GameState {
     if (this.isPlaying && !this.isPaused) {
       this.elapsedMs += deltaTime * 1000;
 
-      // Mise à jour du chrono de validation
+      // Mise à jour du chrono de validation de la zone intermédiaire
+      if (this.checkpointValidationStarted) {
+        this.checkpointValidationTime += deltaTime * 1000;
+        
+        // Bips du chrono de validation de la zone intermédiaire
+        const timeInSeconds = this.checkpointValidationTime / 1000;
+        const secondsElapsed = Math.floor(timeInSeconds);
+        const totalSeconds = Math.floor(this.checkpointValidationDuration / 1000);
+        const remainingSeconds = totalSeconds - secondsElapsed;
+
+        if (secondsElapsed !== this.lastCheckpointValidationSecond) {
+          this.lastCheckpointValidationSecond = secondsElapsed;
+          console.log(`⏰ Zone intermédiaire - Nouvelle seconde: ${secondsElapsed}s écoulées, ${remainingSeconds}s restantes`);
+
+          if (this.soundManager) {
+            if (remainingSeconds === 0) {
+              if (typeof this.soundManager.playTimerEnd === "function") {
+                this.soundManager.playTimerEnd();
+              }
+            } else {
+              if (typeof this.soundManager.playTimerBeep === "function") {
+                this.soundManager.playTimerBeep();
+              }
+            }
+          }
+        }
+        
+        // Log occasionnel pour le chrono de validation de la zone intermédiaire
+        if (Math.random() < 0.02) {
+          const progress = (
+            (this.checkpointValidationTime / this.checkpointValidationDuration) *
+            100
+          ).toFixed(1);
+          console.log(
+            `📊 Validation zone intermédiaire: ${progress}% (${this.checkpointValidationTime.toFixed(
+              0
+            )}ms / ${this.checkpointValidationDuration}ms)`
+          );
+        }
+      }
+
+      // Mise à jour du chrono de validation de la zone finale
       if (this.validationStarted) {
         // Log pour vérifier que validationStarted est true
         if (Math.random() < 0.1) {
@@ -128,14 +175,7 @@ export class GameState {
               `⏰ Bip chrono: ${remainingSeconds} seconde(s) restante(s)`
             );
 
-            // Forcer l'initialisation de l'audio si nécessaire
-            if (
-              this.soundManager.audioContext &&
-              this.soundManager.audioContext.state === "suspended"
-            ) {
-              console.log("🔊 Réactivation du contexte audio...");
-              this.soundManager.audioContext.resume();
-            }
+            // L'initialisation et la reprise de l'audio context sont gérées par le SoundManager
 
             if (remainingSeconds === 0) {
               // Son spécial pour la fin du chrono
@@ -153,6 +193,13 @@ export class GameState {
               } else {
                 console.warn("⚠️ playTimerBeep non disponible dans GameState");
               }
+            }
+          } else {
+            // Ne pas afficher d'erreur si le jeu est terminé
+            if (this.isPlaying) {
+              console.warn(
+                "⚠️ SoundManager non disponible dans GameState.updateTime()"
+              );
             }
           }
         }
@@ -278,6 +325,21 @@ export class GameState {
     console.log("🔊 startValidation() appelée - validationStarted = true");
   }
 
+  startCheckpointValidation() {
+    this.checkpointValidationStarted = true;
+    this.checkpointValidationTime = 0;
+    console.log("🔊 startCheckpointValidation() appelée - checkpointValidationStarted = true");
+  }
+
+  getCheckpointValidationProgress() {
+    if (!this.checkpointValidationStarted) return 0;
+    return Math.min(1, this.checkpointValidationTime / this.checkpointValidationDuration);
+  }
+
+  isCheckpointValidationComplete() {
+    return this.checkpointValidationStarted && this.checkpointValidationTime >= this.checkpointValidationDuration;
+  }
+
   resetValidation() {
     this.validationStarted = false;
     this.validationTime = 0;
@@ -296,6 +358,11 @@ export class GameState {
 
   setSoundManager(soundManager) {
     this.soundManager = soundManager;
+    console.log("🔊 SoundManager défini dans GameState:", {
+      hasSoundManager: !!this.soundManager,
+      hasPlayTimerBeep: typeof this.soundManager?.playTimerBeep === "function",
+      hasPlayTimerEnd: typeof this.soundManager?.playTimerEnd === "function",
+    });
   }
 
   // Statistiques du jeu

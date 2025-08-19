@@ -6,57 +6,56 @@ export class SoundManager {
     this.isMuted = false;
     this.volume = 0.8;
     this.audioContext = null;
-
-    // Initialiser l'audio context après interaction utilisateur
-    this.initAudioOnInteraction();
+    this.isInitialized = false; // Nouveau drapeau pour suivre l'initialisation
   }
 
-  initAudioOnInteraction() {
-    const initAudio = () => {
-      if (!this.audioContext) {
-        try {
-          this.audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-          console.log("🎵 Audio context créé après interaction");
+  // Nouvelle méthode pour s'assurer que l'audio context est initialisé
+  ensureAudioContextInitialized() {
+    if (!this.audioContext) {
+      try {
+        this.audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        this.isInitialized = true;
+        console.log("🎵 Audio context créé après interaction");
 
-          // Test immédiat
-          this.playTone(440, 0.1, 0.3);
-        } catch (e) {
-          console.log("❌ Erreur création audio context:", e);
-        }
+        // Jouer un son silencieux pour "déverrouiller" le contexte audio sur iOS/Safari
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        oscillator.start(0);
+        oscillator.stop(0);
+      } catch (e) {
+        console.log("❌ Erreur création audio context:", e);
       }
-    };
+    }
 
-    // Initialiser au premier clic ou touch
-    document.addEventListener("click", initAudio, { once: true });
-    document.addEventListener("touchstart", initAudio, { once: true });
-    document.addEventListener("keydown", initAudio, { once: true });
-
-    console.log(
-      "🎵 En attente d'interaction utilisateur pour initialiser l'audio"
-    );
+    // Reprendre si suspendu (par exemple, après un changement d'onglet)
+    if (this.audioContext && this.audioContext.state === "suspended") {
+      console.log("⏸️ Audio context suspendu, tentative de reprise...");
+      this.audioContext
+        .resume()
+        .catch((e) => console.log("Erreur reprise audio context:", e));
+    }
   }
 
   // Son simple avec fréquence et durée
   playTone(frequency, duration = 0.1, volume = 0.3) {
     if (this.isMuted) {
-      console.log('🔇 Audio muet, son ignoré');
+      console.log("🔇 Audio muet, son ignoré");
       return;
     }
-    
+
+    // S'assurer que l'audio context est initialisé et repris
+    this.ensureAudioContextInitialized();
+
     if (!this.audioContext) {
-      console.log('❌ Audio context non initialisé, tentative d\'initialisation...');
-      this.initAudioOnInteraction();
+      // Si l'initialisation a échoué
+      console.log("❌ Audio context non disponible pour playTone");
       return;
     }
 
     try {
-      // Vérifier l'état de l'audio context
-      if (this.audioContext.state === 'suspended') {
-        console.log('⏸️ Audio context suspendu, tentative de reprise...');
-        this.audioContext.resume();
-      }
-
       const oscillator = this.audioContext.createOscillator();
       const gainNode = this.audioContext.createGain();
 
@@ -81,10 +80,14 @@ export class SoundManager {
       oscillator.start(this.audioContext.currentTime);
       oscillator.stop(this.audioContext.currentTime + duration);
 
-      console.log(`🎵 Son joué avec succès: ${frequency}Hz, ${duration}s, volume: ${volume * this.volume}`);
+      console.log(
+        `🎵 Son joué avec succès: ${frequency}Hz, ${duration}s, volume: ${
+          volume * this.volume
+        }`
+      );
     } catch (e) {
       console.log("❌ Erreur lecture son:", e);
-      console.log('État audio context:', this.audioContext?.state);
+      console.log("État audio context:", this.audioContext?.state);
     }
   }
 
@@ -163,9 +166,23 @@ export class SoundManager {
     setTimeout(() => this.playTone(150, 0.3, 0.4), 200);
   }
 
-  // Son pour le dessin (quand on trace des traits)
+  // Son de surligneur pour le dessin (quand on trace des traits)
   playDraw() {
-    this.playTone(400, 0.1, 0.5);
+    // Son de surligneur : fréquence plus basse, durée courte, avec un léger effet de "frottement"
+    this.playTone(250, 0.08, 0.3);
+  }
+
+  // Son de surligneur amélioré (plus réaliste)
+  playHighlighter() {
+    console.log("🎨 playHighlighter() appelée");
+    // Son de surligneur avec une fréquence caractéristique et un effet de "glissement"
+    this.playTone(180, 0.06, 0.25);
+  }
+
+  // Son d'effacement (quand on efface avec le double-tap)
+  playErase() {
+    // Son d'effacement : fréquence plus basse, durée courte
+    this.playTone(120, 0.08, 0.2);
   }
 
   // Son de succès (générique - pour compatibilité)
@@ -180,7 +197,7 @@ export class SoundManager {
 
   // Test audio fort
   testAudio() {
-    console.log('🔊 Test audio fort...');
+    console.log("🔊 Test audio fort...");
     this.playTone(440, 0.5, 0.8); // Son de test plus fort
   }
 

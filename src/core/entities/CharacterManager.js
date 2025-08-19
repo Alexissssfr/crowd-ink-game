@@ -92,6 +92,27 @@ export class CharacterManager {
   }
 
   /**
+   * Compte les personnages dans une zone donnée
+   */
+  getCharactersInZone(zone) {
+    if (!zone) return 0;
+    
+    let count = 0;
+    for (const character of this.characters.values()) {
+      if (character.isDead) continue;
+      
+      const position = character.getPosition();
+      if (position.x >= zone.x && 
+          position.x <= zone.x + zone.w && 
+          position.y >= zone.y && 
+          position.y <= zone.y + zone.h) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
    * Rendu de tous les personnages
    */
   render(renderer) {

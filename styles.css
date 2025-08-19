@@ -512,4 +512,50 @@ body {
   }
 }
 
+/* ===== CORRECTIONS DE VISIBILITÉ ===== */
+
+/* Fenêtre de fin de partie - Texte blanc */
+.status-panel p,
+#status-message {
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+  font-weight: 500 !important;
+}
+
+/* Choisir un challenge - Descriptions bleu clair */
+.challenge-card p {
+  color: #e8f4fd !important;
+  opacity: 0.9 !important;
+  font-weight: 500 !important;
+}
+
+/* Préparer le challenge - Tous les textes blancs */
+.modal-panel p {
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+  font-weight: 500 !important;
+}
+
+.setting-label {
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+  font-weight: 600 !important;
+}
+
+.setting-description {
+  color: #e8f4fd !important;
+  opacity: 0.9 !important;
+  font-weight: 500 !important;
+}
+
+.speed-control span {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.checkbox-label {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
 
